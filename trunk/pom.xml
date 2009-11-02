@@ -1,0 +1,52 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.yosemite</groupId>
+    <artifactId>jcsadra</artifactId>
+    <packaging>jar</packaging>
+    <version>0.1-SNAPSHOT</version>
+    <name>jcsadra</name>
+    <description>Cassandra Java Client Library</description>
+    <url>http://code.google.com/p/cassandra-java-client/</url>
+
+
+  <issueManagement>
+    <system>google code</system>
+    <url>http://code.google.com/p/cassandra-java-client/issues/list</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:svn:https://cassandra-java-client.googlecode.com/svn/trunk</connection>
+    <developerConnection>scm:svn:https://cassandra-java-client.googlecode.com/svn/trunk</developerConnection>
+    <url>http://code.google.com/p/cassandra-java-client/source/browse</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>Santal Li</name>
+      <id>sanli</id>
+      <email>santal.li@gmail.com</email>
+      <organization></organization>
+    </developer>
+  </developers>
+
+  <!--
+  - relative lib
+  -->
+  <dependencies>
+
+        <dependency>
+            <groupId>commons-pool</groupId>
+            <artifactId>commons-pool</artifactId>
+            <version>1.5.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+</project>
