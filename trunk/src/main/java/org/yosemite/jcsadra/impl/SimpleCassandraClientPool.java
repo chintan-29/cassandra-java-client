@@ -2,8 +2,25 @@ package org.yosemite.jcsadra.impl;
 
 import java.util.NoSuchElementException;
 
+import org.apache.cassandra.service.Cassandra;
+import org.apache.commons.pool.BasePoolableObjectFactory;
+import org.apache.commons.pool.PoolableObjectFactory;
+import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool.impl.GenericObjectPoolFactory;
+
+import org.apache.cassandra.service.Cassandra;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
+
+import org.apache.log4j.Logger;
+
 import org.yosemite.jcsadra.CassandraClient;
 import org.yosemite.jcsadra.CassandraClientPool;
+
+
 
 
 /**
@@ -15,72 +32,241 @@ import org.yosemite.jcsadra.CassandraClientPool;
  *    by the pool at a given time.  When non-positive, there is no
  *    limit to the number of client that can be managed by the pool at one time.
  *    When maxActive is reached, the pool is said to be exhausted. 
- *    The default setting for this parameter is 15(because from our test, the 15 concurrent
- *    access perform very well in commons pc server)<br>
+ *    The default setting for this parameter is 50, this is large number, but should 
+ *    work for us, because cassandra was a server cluster, if we using round-robine DNS
+ *    LB, and have 10 server in cluster, there was avg 5 connect to each server, that
+ *    would be not a problem
  *    
  *    maxIdle controls the maximum number of objects that can sit idle in the pool 
  *    at any time.  When negative, there is no limit to the number of objects that may 
- *    be idle at one time. The default setting for this parameter is 5( 1/3 of maxActive).<br>
+ *    be idle at one time. The default setting for this parameter is 5( 1/10 of maxActive, for same the 
+ *    client resource).<br>
  *  
  *    exhaustedAction specifies the behavior of the getClinet() method when 
  *    the pool is exhausted:
- *      When exhaustedAction is #WHEN_EXHAUSTED_FAIL getClient() will throw a 
+ *      When exhaustedAction is WHEN_EXHAUSTED_FAIL getClient() will throw a 
  *      NoSuchElementException
  *      
- *      When {@link #setWhenExhaustedAction <i>whenExhaustedAction</i>} is
- *      {@link #WHEN_EXHAUSTED_GROW}, {@link #borrowObject} will create a new
- *      object and return it (essentially making {@link #setMaxActive <i>maxActive</i>}
- *      meaningless.)
- *    </li>
- *    <li>
- *      When {@link #setWhenExhaustedAction <i>whenExhaustedAction</i>}
- *      is {@link #WHEN_EXHAUSTED_BLOCK}, {@link #borrowObject} will block
- *      (invoke {@link Object#wait()}) until a new or idle object is available.
- *      If a positive {@link #setMaxWait <i>maxWait</i>}
- *      value is supplied, then {@link #borrowObject} will block for at
- *      most that many milliseconds, after which a {@link NoSuchElementException}
- *      will be thrown.  If {@link #setMaxWait <i>maxWait</i>} is non-positive,
- *      the {@link #borrowObject} method will block indefinitely.
- *    </li>
- *    </ul>
- *    The default <code>whenExhaustedAction</code> setting is
- *    {@link #WHEN_EXHAUSTED_BLOCK} and the default <code>maxWait</code>
- *    setting is -1. By default, therefore, <code>borrowObject</code> will
- *    block indefinitely until an idle instance becomes available.
- *  </li>
+ *      When exhaustedAction WHEN_EXHAUSTED_GROW getClinet will create a new
+ *      object and return it (essentially making maxActive meaningless.)
+ *    
+ *      When exhaustedAction is WHEN_EXHAUSTED_BLOCK, getClient() will block
+ *      until a new or idle object is available.
+ *      If a positive maxWait value is supplied, then getClient will block for at
+ *      most that many milliseconds, after which a NoSuchElementException
+ *      will be thrown.  If maxWait is non-positive, the getClient() method will 
+ *      block indefinitely.
+ *    
+ *    The default exhaustedAction setting is WHEN_EXHAUSTED_BLOCK} and the default 
+ *    maxWaitWhenBlock setting is 60000. By default, therefore, getClinet() will
+ *    block 1 minutes, then throw out a exception, if we can not get a connect in 1 
+ *    minutes, there must be something wrong.
+ *  
  * @author sanli
  */
 public class SimpleCassandraClientPool implements CassandraClientPool {
+	
+	Logger logger = Logger.getLogger(this.getClass());
+	
+	
+	/**
+	 * default max active number is 50, because Cassandra have multiple servers
+	 * so 50 should be a good value.
+	 */
+	public static final int DEFAULT_MAX_ACTIVE = 50 ;
+	
+	/**
+	 * default max idle number is 5, so when the client keep idle, the total connection 
+	 * number will release to 5 
+	 */
+	public static final int DEFAULT_MAX_IDLE = 5 ;
+	
+	
+	/**
+	 * default exhausted action is block for 1 minute, because in many time, cassandra was being 
+	 * used in a web backed, so too long time block will cause very bad user experience.
+	 * for some other non-synchronize application, this value can configure to a more long time.  
+	 */
+	public static final ExhaustedAction DEFAULT_EXHAUSTED_ACTION = ExhaustedAction.WHEN_EXHAUSTED_BLOCK ;
+	
+	/**
+	 * the default max wait time when exhausted happened, default value is 1 minute
+	 */
+	public static final long DEFAULT_MAX_WAITTIME_WHEN_EXHAUSTED = 1 * 60 * 1000  ;
+	
+	
+	/**
+	 * the object pool, all client instance managed by this pool
+	 */
+	GenericObjectPoolFactory _poolfactory = null  ;
+	GenericObjectPool _pool = null ;
+	PoolableClientFactory _clientfactory = null ;
+	
+	enum ExhaustedAction{
+		WHEN_EXHAUSTED_FAIL ,
+		WHEN_EXHAUSTED_GROW , 
+		WHEN_EXHAUSTED_BLOCK
+	}
+	
+	
+	public SimpleCassandraClientPool(String serviceURL , int port ){
+		this(serviceURL, port, new PoolableClientFactory(), DEFAULT_MAX_ACTIVE,
+				DEFAULT_EXHAUSTED_ACTION, DEFAULT_MAX_WAITTIME_WHEN_EXHAUSTED , 
+				DEFAULT_MAX_IDLE );
+	}
+	
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-
+		try {
+			_pool.close() ;
+		} catch (Exception e) {
+			logger.error("close client pool error",e);
+		}
 	}
 
 	@Override
 	public int getAvailableNum() {
-		// TODO Auto-generated method stub
-		return 0;
+		return _pool.getNumIdle();
 	}
 
 	@Override
 	public CassandraClient getClient() throws Exception,
 			NoSuchElementException, IllegalStateException {
-		// TODO Auto-generated method stub
-		return null;
+		CassandraClient cc = (CassandraClient)_pool.borrowObject();
+		return cc;
 	}
 
 	@Override
 	public int getUsingNum() {
-		// TODO Auto-generated method stub
-		return 0;
+		return _pool.getNumActive();
 	}
 
 	@Override
 	public void releaseClient(CassandraClient client) throws Exception {
-		// TODO Auto-generated method stub
+		_pool.returnObject(client);
+	}
 
+
+	
+	/**
+	 * inner class for create and destory Cassandra.Client 
+	 * @author sanli
+	 */
+	public class PoolableClientFactory extends BasePoolableObjectFactory
+			implements PoolableObjectFactory {
+
+		
+		@Override
+		public void destroyObject(Object obj) throws Exception {
+			Cassandra.Client client = (Cassandra.Client)obj ;
+			closeClient(client) ;
+		}
+
+		@Override
+		public Object makeObject() throws Exception {
+			return createClient() ;
+		}
+
+		
+		/**
+		 * do a simple cassandra request
+		 */
+		@Override
+		public boolean validateObject(Object obj) {
+			return validateClient((Cassandra.Client)obj);
+		}
+		
+	}
+	
+	
+	// ************************************ protected method ***********************************
+	
+	
+	
+	/**
+	 * this construct method was for unit test, for regulary usage, should not given the client factory 
+	 */
+	protected SimpleCassandraClientPool(String serviceURL, int port,
+			PoolableClientFactory clientfactory, int maxActive, 
+			ExhaustedAction exhaustedAction , long maxWait, int maxIdle) {
+		this.serviceURL = serviceURL ; 
+		this.port = port ;
+		this.maxActive = maxActive ;
+		this.exhaustedAction = exhaustedAction ;
+		this.maxWaitWhenBlockByExhausted = maxWait ; 
+		this.maxIdle = maxIdle;
+		
+		_poolfactory = new GenericObjectPoolFactory( clientfactory , maxActive ,
+				_getObjectPoolExhaustedAction(exhaustedAction) ,
+				maxWait , maxIdle );
+		
+		_pool = (GenericObjectPool) _poolfactory.createPool() ; 
+	}
+	
+	
+	protected Cassandra.Client createClient() throws TTransportException{
+		
+		if(logger.isDebugEnabled())
+			logger.debug("create cassandra client [" + serviceURL + ":" + port + "]" );
+		try{
+			TTransport tr = new TSocket( serviceURL, port );
+			TProtocol proto = new TBinaryProtocol(tr);
+			Cassandra.Client client = new Cassandra.Client(proto);
+			tr.open();
+			return client ;
+		}catch(TTransportException e){
+			logger.error("create client error:" , e) ;
+			throw e ;
+		}
+	}
+	
+	
+	protected void closeClient(Cassandra.Client client) {
+		if(logger.isDebugEnabled())
+			logger.debug("close client " + client.toString());
+		
+		client.getInputProtocol().getTransport().close() ;
+		client.getOutputProtocol().getTransport().close() ;
+	}
+	
+	protected boolean validateClient(Cassandra.Client client){
+		//TODO send simple reqesut to cassandra, this request 
+		// should very quickly and light
+		return true ;
+	}
+	
+	
+	
+	// **********************************  private method *********************************
+	
+	private int maxActive  ;
+	
+	private int maxIdle  ;
+	
+	private ExhaustedAction exhaustedAction ;
+	
+	private long maxWaitWhenBlockByExhausted ;
+	
+	
+	// the Cassandra service url, 
+	private String serviceURL = "localhost" ;
+	
+	// port
+	private int port = 9096 ;
+
+	
+	private byte _getObjectPoolExhaustedAction(ExhaustedAction exhaustedAction){
+		switch(exhaustedAction){
+			case WHEN_EXHAUSTED_FAIL :
+				return GenericObjectPool.WHEN_EXHAUSTED_FAIL ;
+			case WHEN_EXHAUSTED_BLOCK :
+				return GenericObjectPool.WHEN_EXHAUSTED_BLOCK ;
+			case WHEN_EXHAUSTED_GROW :
+				return GenericObjectPool.WHEN_EXHAUSTED_GROW ;
+			default:
+				return GenericObjectPool.WHEN_EXHAUSTED_BLOCK ;
+		}
 	}
 
 }
