@@ -16,6 +16,14 @@
  */
 package org.yosemite.jcsadra;
 
+import org.apache.cassandra.service.Cassandra;
+import org.apache.cassandra.service.ColumnOrSuperColumn;
+import org.apache.cassandra.service.ColumnPath;
+import org.apache.cassandra.service.InvalidRequestException;
+import org.apache.cassandra.service.NotFoundException;
+import org.apache.cassandra.service.UnavailableException;
+import org.apache.thrift.TException;
+
 
 /**
  * Client interface, provide all Cassandra request
@@ -23,5 +31,9 @@ package org.yosemite.jcsadra;
  * @author sanli
  */
 public interface CassandraClient {
-
+	
+	public ColumnOrSuperColumn get(String keyspace, String key, ColumnPath column_path, int consistency_level) throws InvalidRequestException, NotFoundException, UnavailableException, TException ;
+	
+	
+	
 }

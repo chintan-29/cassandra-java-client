@@ -110,7 +110,7 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	
 	
 	public SimpleCassandraClientPool(String serviceURL , int port ){
-		this(serviceURL, port, new PoolableClientFactory(), DEFAULT_MAX_ACTIVE,
+		this(serviceURL, port, null, DEFAULT_MAX_ACTIVE,
 				DEFAULT_EXHAUSTED_ACTION, DEFAULT_MAX_WAITTIME_WHEN_EXHAUSTED , 
 				DEFAULT_MAX_IDLE );
 	}
@@ -155,7 +155,6 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	 */
 	public class PoolableClientFactory extends BasePoolableObjectFactory
 			implements PoolableObjectFactory {
-
 		
 		@Override
 		public void destroyObject(Object obj) throws Exception {
@@ -167,7 +166,6 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 		public Object makeObject() throws Exception {
 			return createClient() ;
 		}
-
 		
 		/**
 		 * do a simple cassandra request
@@ -179,13 +177,64 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 		
 	}
 	
+	public int getMaxActive() {
+		return maxActive;
+	}
+
+
+	public void setMaxActive(int maxActive) {
+		this.maxActive = maxActive;
+		_pool.setMaxActive(maxActive);
+	}
+
+
+	public int getMaxIdle() {
+		return maxIdle;
+	}
+
+
+	public void setMaxIdle(int maxIdle) {
+		this.maxIdle = maxIdle;
+		_pool.setMaxIdle(maxIdle);
+	}
+
+
+	public long getMaxWaitWhenBlockByExhausted() {
+		return maxWaitWhenBlockByExhausted;
+	}
+
+
+	public void setMaxWaitWhenBlockByExhausted(long maxWaitWhenBlockByExhausted) {
+		this.maxWaitWhenBlockByExhausted = maxWaitWhenBlockByExhausted;
+		_pool.setMaxWait(maxWaitWhenBlockByExhausted);
+	}
+
+
+	/**
+	 * serviceURL is read only, can not change after pool created
+	 * @return
+	 */
+	public String getServiceURL() {
+		return serviceURL;
+	}
+
+
+	/**
+	 * port number was read only, can not change after pool created
+	 * @return
+	 */
+	public int getPort() {
+		return port;
+	}
+
+	
 	
 	// ************************************ protected method ***********************************
 	
 	
 	
 	/**
-	 * this construct method was for unit test, for regulary usage, should not given the client factory 
+	 * this construct method wamaxWaitWhenBlockExhausteds for unit test, for regulary usage, should not given the client factory 
 	 */
 	protected SimpleCassandraClientPool(String serviceURL, int port,
 			PoolableClientFactory clientfactory, int maxActive, 
@@ -196,6 +245,11 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 		this.exhaustedAction = exhaustedAction ;
 		this.maxWaitWhenBlockByExhausted = maxWait ; 
 		this.maxIdle = maxIdle;
+		
+		// if not give  a client factory, will create the default PoolableClientFactory
+		if(clientfactory==null){
+			this._clientfactory = new PoolableClientFactory();
+		}
 		
 		_poolfactory = new GenericObjectPoolFactory( clientfactory , maxActive ,
 				_getObjectPoolExhaustedAction(exhaustedAction) ,
