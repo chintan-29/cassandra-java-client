@@ -22,17 +22,71 @@ import org.apache.cassandra.service.ColumnPath;
 import org.apache.cassandra.service.InvalidRequestException;
 import org.apache.cassandra.service.NotFoundException;
 import org.apache.cassandra.service.UnavailableException;
+import org.apache.cassandra.service.Cassandra.Client;
 import org.apache.thrift.TException;
 
 
 /**
- * Client interface, provide all Cassandra request
+ * Client object, it was the root of Cassandra client object.
+ * 
+ * The structure as bellow:
+ * 
+ * CassandraClient   -->   KeySpace  -->  Column
+ *                                   -->  SuperColumn
+ *                                   -->  ColumnPath
+ *                                   -->  SuperColumnPath
+ *    
+ * 
+ * When the client object was created, it will read the define info from 
+ * Cassandra meta table, all different CSD server should have exactly same
+ * configureation.
+ * 
+ * User can call getKeySpace(String spaceName) to get space, if the space not
+ * exist,will throw out exception.
+ * 
+ * After got the KeySpace object, user can fire really query/insert function on 
+ * it.
+ * 
+ * The KeySpace object will be the core logic of whole Cassandra Client, just like
+ * the PrepareStatement does in JDBC client.
+ * 
  * 
  * @author sanli
  */
-public interface CassandraClient {
+public class CassandraClient {
 	
-	public ColumnOrSuperColumn get(String keyspace, String key, ColumnPath column_path, int consistency_level) throws InvalidRequestException, NotFoundException, UnavailableException, TException ;
+
+	/**
+	 * constuctor function, for provent other one create Client object by
+	 * hand, so make it protected.
+	 * @param cassandra
+	 */
+	protected CassandraClient(Cassandra.Client cassandra){
+		this._cassandra = cassandra ;
+	}
+
+	
+	/**
+	 * return the under line cassandra thrift object, all remote call
+	 * will send to this client on the earth.
+	 * 
+	 * Because of the Cassandra.Client object was not thread safe, so
+	 * if you want direct using the Cassandra.Client, please make sure
+	 * it will not compact with other thread. 
+	 * @return
+	 */
+	public Cassandra.Client getCassandra() {
+		return _cassandra;
+	}
+	
+	
+	
+	
+	
+	// thrift object
+	Cassandra.Client _cassandra ;
+	
+	
 	
 	
 	

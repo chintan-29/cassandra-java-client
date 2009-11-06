@@ -92,6 +92,6 @@ public interface CassandraClientPool {
      * keep silence, in any fail.
      * 
      */
-    void close();
+    public void close();
 
 }
