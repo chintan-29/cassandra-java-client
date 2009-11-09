@@ -17,13 +17,8 @@
 package org.yosemite.jcsadra;
 
 import org.apache.cassandra.service.Cassandra;
-import org.apache.cassandra.service.ColumnOrSuperColumn;
-import org.apache.cassandra.service.ColumnPath;
-import org.apache.cassandra.service.InvalidRequestException;
-import org.apache.cassandra.service.NotFoundException;
-import org.apache.cassandra.service.UnavailableException;
-import org.apache.cassandra.service.Cassandra.Client;
-import org.apache.thrift.TException;
+
+import java.lang.IllegalArgumentException; 
 
 
 /**
@@ -53,18 +48,22 @@ import org.apache.thrift.TException;
  * 
  * @author sanli
  */
-public class CassandraClient {
+public interface CassandraClient {
 	
-
+	
 	/**
-	 * constuctor function, for provent other one create Client object by
-	 * hand, so make it protected.
-	 * @param cassandra
+	 * Conssitency Level when do read/write request
+	 * ZERO : will not wait any result, this is most high performance,
+	 *    but lower consistency, you should only using it within condition
+	 *    like: record log.
+	 * ONE : will wait for one client to send response, then at least on 
+	 *    write/read was success, if the replica > 2, some data maybe was inconsistency.
+	 *    
+	 *
 	 */
-	protected CassandraClient(Cassandra.Client cassandra){
-		this._cassandra = cassandra ;
+	enum ConsistencyLevel{
+		  ZERO, ONE ,QUORUM, ALL
 	}
-
 	
 	/**
 	 * return the under line cassandra thrift object, all remote call
@@ -75,19 +74,34 @@ public class CassandraClient {
 	 * it will not compact with other thread. 
 	 * @return
 	 */
-	public Cassandra.Client getCassandra() {
-		return _cassandra;
-	}
+	public Cassandra.Client getCassandra() ;
 	
 	
 	
+	/**
+	 * return given key space, if keySpaceName not exist, will throw out 
+	 * exception. the thread safe status depends on implement, please
+	 * get the detail info from specify implement's documents. 
+	 * 
+	 * keySpace object need not manual closed by caller. 
+	 * 
+	 * the default consitencyLevel will be 
+	 * 
+	 * @param keySpaceName
+	 * @return if the key spaceName exist, will return relate KeySpace object
+	 * @throws IllegalArgumentException if keySpaceName not exit, will throw 
+	 *   out IllegalArgumentException.
+	 */
+	public KeySpace getKeySpace(String keySpaceName) throws IllegalArgumentException ;
 	
 	
-	// thrift object
-	Cassandra.Client _cassandra ;
-	
-	
-	
-	
+	/**
+	 * 
+	 * @param keySpaceName
+	 * @param consitencyLevel
+	 * @return
+	 * @throws IllegalArgumentException
+	 */
+	public KeySpace getKeySpace(String keySpaceName , ConsistencyLevel consitencyLevel) throws IllegalArgumentException ;
 	
 }

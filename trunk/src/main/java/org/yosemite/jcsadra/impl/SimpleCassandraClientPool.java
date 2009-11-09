@@ -41,7 +41,10 @@ import org.yosemite.jcsadra.CassandraClientPool;
  *    be idle at one time. The default setting for this parameter is 5( 1/10 of maxActive, for same the 
  *    client resource).<br>
  *  
- *    exhaustedAction specifies the behavior of the getClinet() method when 
+ *    exhaustedAction specifies the b
+	
+
+}ehavior of the getClinet() method when 
  *    the pool is exhausted:
  *      When exhaustedAction is WHEN_EXHAUSTED_FAIL getClient() will throw a 
  *      NoSuchElementException
@@ -157,7 +160,7 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 		
 		@Override
 		public void destroyObject(Object obj) throws Exception {
-			Cassandra.Client client = (Cassandra.Client)obj ;
+			CassandraClient client = (CassandraClient)obj ;
 			closeClient(client) ;
 		}
 
@@ -171,7 +174,7 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 		 */
 		@Override
 		public boolean validateObject(Object obj) {
-			return validateClient((Cassandra.Client)obj);
+			return validateClient((CassandraClient)obj);
 		}
 		
 	}
@@ -258,7 +261,7 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	}
 	
 	
-	protected Cassandra.Client createClient() throws TTransportException{
+	protected CassandraClient createClient() throws TTransportException{
 		
 		if(logger.isDebugEnabled())
 			logger.debug("create cassandra client [" + serviceURL + ":" + port + "]" );
@@ -267,7 +270,9 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 			TProtocol proto = new TBinaryProtocol(tr);
 			Cassandra.Client client = new Cassandra.Client(proto);
 			tr.open();
-			return client ;
+			
+			CassandraClient cclient = new CassandraClientImpl(client) ;
+			return cclient ;
 		}catch(TTransportException e){
 			logger.error("create client error:" , e) ;
 			throw e ;
@@ -275,7 +280,8 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	}
 	
 	
-	protected void closeClient(Cassandra.Client client) {
+	protected void closeClient(CassandraClient cclient) {
+		Cassandra.Client client = cclient.getCassandra() ;
 		if(logger.isDebugEnabled())
 			logger.debug("close client " + client.toString());
 		
@@ -283,7 +289,8 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 		client.getOutputProtocol().getTransport().close() ;
 	}
 	
-	protected boolean validateClient(Cassandra.Client client){
+	
+	protected boolean validateClient(CassandraClient client){
 		//TODO send simple reqesut to cassandra, this request 
 		// should very quickly and light
 		return true ;
