@@ -31,30 +31,71 @@ import org.apache.thrift.TException;
 
 
 /**
- * KeySpace object, fire operation to really cassandra server
+ * KeySpace object, fire operation to really cassandra server , this 
+ * was just a simple wrap for Cassandra.Client interface, about
+ * each function's detail further please refer to Cassandra Thrift define 
+ * file.
+ * 
+ * The main target for this KeySpace object is to make Cassandra call more 
+ * simple and each to use.
+ * 
  * @author sanli
  */
 public interface KeySpace {
 	
-    public ColumnOrSuperColumn get(String key, ColumnPath column_path) throws InvalidRequestException, NotFoundException, UnavailableException, TException;
-
-    public List<ColumnOrSuperColumn> get_slice(String key, ColumnParent column_parent, SlicePredicate predicate, int consistency_level) throws InvalidRequestException, NotFoundException, UnavailableException, TException;
-
-    public Map<String,ColumnOrSuperColumn> multiget(List<String> keys, ColumnPath column_path, int consistency_level) throws InvalidRequestException, UnavailableException, TException;
-
-    public Map<String,List<ColumnOrSuperColumn>> multiget_slice(List<String> keys, ColumnParent column_parent, SlicePredicate predicate, int consistency_level) throws InvalidRequestException, UnavailableException, TException;
-
-    public int get_count(String key, ColumnParent column_parent, int consistency_level) throws InvalidRequestException, UnavailableException, TException;
-
-    public List<String> get_key_range(String keyspace, String column_family, String start, String finish, int count, int consistency_level) throws InvalidRequestException, UnavailableException, TException;
-
-    public void insert(String keyspace, String key, ColumnPath column_path, byte[] value, long timestamp, int consistency_level) throws InvalidRequestException, UnavailableException, TException;
-
-    public void batch_insert(String keyspace, String key, Map<String,List<ColumnOrSuperColumn>> cfmap, int consistency_level) throws InvalidRequestException, UnavailableException, TException;
-
-    public void remove(String keyspace, String key, ColumnPath column_path, long timestamp, int consistency_level) throws InvalidRequestException, UnavailableException, TException;
+    public Column getColumn(String key, ColumnPath column_path)
+			throws InvalidRequestException, NotFoundException,
+			UnavailableException, TException;
     
-    public Map<String,Map<String,String>> describe_keyspace(String keyspace) throws NotFoundException, TException;
+    public SuperColumn getSuperColumn(String key, ColumnPath column_path)
+	throws InvalidRequestException, NotFoundException,
+	UnavailableException, TException;
+
+    public List<Column> getSlice(String key,
+			ColumnParent column_parent, SlicePredicate predicate)
+			throws InvalidRequestException, NotFoundException,
+			UnavailableException, TException;
+    
+    
+    public List<SuperColumn> getSuperSlice(String key,
+			ColumnParent column_parent, SlicePredicate predicate)
+			throws InvalidRequestException, NotFoundException,
+			UnavailableException, TException;
+
+    public Map<String, Column> multigetColumn(List<String> keys,
+			ColumnPath column_path) throws InvalidRequestException,
+			UnavailableException, TException;
+    
+    
+    public Map<String, SuperColumn> multigetSuperColumn(List<String> keys,
+			ColumnPath column_path) throws InvalidRequestException,
+			UnavailableException, TException;
+
+    public Map<String, List<BaseColumn>> multigetSlice(
+			List<String> keys, ColumnParent column_parent,
+			SlicePredicate predicate) throws InvalidRequestException,
+			UnavailableException, TException;
+
+    public int getCount(String key, ColumnParent column_parent)
+			throws InvalidRequestException, UnavailableException, TException;
+
+    public List<String> getKeyRange(String keyspace, String column_family,
+			String start, String finish, int count)
+			throws InvalidRequestException, UnavailableException, TException;
+
+    public void insert(String keyspace, String key, ColumnPath column_path,
+			byte[] value) throws InvalidRequestException,
+			UnavailableException, TException;
+
+    public void batchInsert(String keyspace, String key,
+			Map<String, List<BaseColumn>> cfmap)
+			throws InvalidRequestException, UnavailableException, TException;
+
+    public void remove(String key, ColumnPath column_path)
+			throws InvalidRequestException, UnavailableException, TException;
+    
+    public Map<String, Map<String, String>> describeKeyspace()
+			throws NotFoundException, TException;
 
 
 }
