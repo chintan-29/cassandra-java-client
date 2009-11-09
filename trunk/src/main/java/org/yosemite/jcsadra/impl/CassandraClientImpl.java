@@ -36,13 +36,20 @@ public class CassandraClientImpl implements CassandraClient {
 
 
 
-	@Override
 	public KeySpace getKeySpace(String keySpaceName)
 			throws IllegalArgumentException {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
+
+	public KeySpace getKeySpace(String keySpaceName,
+			ConsistencyLevel consitencyLevel) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
 	
 	
 	

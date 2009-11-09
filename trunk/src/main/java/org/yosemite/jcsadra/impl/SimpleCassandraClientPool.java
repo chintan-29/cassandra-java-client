@@ -118,7 +118,6 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	}
 	
 
-	@Override
 	public void close() {
 		try {
 			_pool.close() ;
@@ -127,24 +126,21 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 		}
 	}
 
-	@Override
 	public int getAvailableNum() {
 		return _pool.getNumIdle();
 	}
 
-	@Override
 	public CassandraClient getClient() throws Exception,
 			NoSuchElementException, IllegalStateException {
 		CassandraClient cc = (CassandraClient)_pool.borrowObject();
 		return cc;
 	}
 
-	@Override
+
 	public int getUsingNum() {
 		return _pool.getNumActive();
 	}
 
-	@Override
 	public void releaseClient(CassandraClient client) throws Exception {
 		_pool.returnObject(client);
 	}
