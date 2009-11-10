@@ -43,6 +43,12 @@ import org.apache.commons.pool.PoolableObjectFactory;
  */
 public interface CassandraClientPool {
 	
+	public enum ExhaustedAction{
+		WHEN_EXHAUSTED_FAIL ,
+		WHEN_EXHAUSTED_GROW , 
+		WHEN_EXHAUSTED_BLOCK
+	}
+	
 	
 	/**
 	 * Obtain a client instance from pool, the behavior when there was not extra idle client was depend on 
@@ -67,7 +73,8 @@ public interface CassandraClientPool {
 	
 	/**
 	 * Return current available client number, this number follow bellow rule:
-	 * AvailableNum = MaxNum - UsingNum .
+	 * AvailableNum = PooledClientNumber - UsingNum, so when init the value was 
+	 * 0,  after pool allocate more client for user, this value will increase.  
 	 * @return available client in pool
 	 */
 	public int getAvailableNum();
@@ -78,7 +85,7 @@ public interface CassandraClientPool {
 	 * decrease, call releaseClient will increase value.
 	 * @return 
 	 */
-	public int getUsingNum();
+	public int getActiveNum();
 	
 	
 	

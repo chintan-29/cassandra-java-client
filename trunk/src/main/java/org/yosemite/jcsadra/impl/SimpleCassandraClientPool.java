@@ -41,10 +41,7 @@ import org.yosemite.jcsadra.CassandraClientPool;
  *    be idle at one time. The default setting for this parameter is 5( 1/10 of maxActive, for same the 
  *    client resource).<br>
  *  
- *    exhaustedAction specifies the b
-	
-
-}ehavior of the getClinet() method when 
+ *    exhaustedAction specifies the behavior of the getClinet() method when 
  *    the pool is exhausted:
  *      When exhaustedAction is WHEN_EXHAUSTED_FAIL getClient() will throw a 
  *      NoSuchElementException
@@ -64,6 +61,11 @@ import org.yosemite.jcsadra.CassandraClientPool;
  *    block 1 minutes, then throw out a exception, if we can not get a connect in 1 
  *    minutes, there must be something wrong.
  *  
+ *  
+ *  state table:
+ *  ======            ===========           =========           ============
+ *  |init|  ->     -> |maxActive| ->     -> |maxIdle| ->     -> |minIdle(0)|
+ *  ======            ===========           =========           ============
  * @author sanli
  */
 public class SimpleCassandraClientPool implements CassandraClientPool {
@@ -104,11 +106,7 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	GenericObjectPool _pool = null ;
 	PoolableClientFactory _clientfactory = null ;
 	
-	enum ExhaustedAction{
-		WHEN_EXHAUSTED_FAIL ,
-		WHEN_EXHAUSTED_GROW , 
-		WHEN_EXHAUSTED_BLOCK
-	}
+
 	
 	
 	public SimpleCassandraClientPool(String serviceURL , int port ){
@@ -137,7 +135,7 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	}
 
 
-	public int getUsingNum() {
+	public int getActiveNum() {
 		return _pool.getNumActive();
 	}
 
@@ -235,7 +233,7 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	 * this construct method wamaxWaitWhenBlockExhausteds for unit test, for regulary usage, should not given the client factory 
 	 */
 	protected SimpleCassandraClientPool(String serviceURL, int port,
-			PoolableClientFactory clientfactory, int maxActive, 
+			PoolableObjectFactory clientfactory, int maxActive, 
 			ExhaustedAction exhaustedAction , long maxWait, int maxIdle) {
 		this.serviceURL = serviceURL ; 
 		this.port = port ;
