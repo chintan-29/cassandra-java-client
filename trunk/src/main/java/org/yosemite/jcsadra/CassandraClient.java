@@ -104,4 +104,19 @@ public interface CassandraClient {
 	 */
 	public KeySpace getKeySpace(String keySpaceName , ConsistencyLevel consitencyLevel) throws IllegalArgumentException ;
 	
+	
+	
+	/**
+	 * return some string property
+	 * property include:
+	 * 
+	 * "cluster name": cluster name;
+	 * "config file" : all config file content, if need you can try to explain it.
+	 * "token map" :  get the token map from local gossip protocal.
+	 * 
+	 * @param propertyName
+	 * @return
+	 */
+	public String getStringProperty(String propertyName) ;
+	
 }
