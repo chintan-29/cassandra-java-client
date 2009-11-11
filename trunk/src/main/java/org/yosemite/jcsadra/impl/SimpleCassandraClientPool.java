@@ -269,7 +269,8 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 			Cassandra.Client client = new Cassandra.Client(proto);
 			tr.open();
 			
-			CassandraClient cclient = new CassandraClientImpl(client) ;
+			CassandraClientImpl cclient = new CassandraClientImpl(client) ;
+			cclient.init() ;
 			return cclient ;
 		}catch(TTransportException e){
 			logger.error("create client error:" , e) ;

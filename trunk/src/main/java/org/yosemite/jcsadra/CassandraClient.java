@@ -17,8 +17,12 @@
 package org.yosemite.jcsadra;
 
 import org.apache.cassandra.service.Cassandra;
+import org.apache.cassandra.service.NotFoundException;
+import org.apache.thrift.TException;
 
 import java.lang.IllegalArgumentException; 
+import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -91,8 +95,10 @@ public interface CassandraClient {
 	 * @return if the key spaceName exist, will return relate KeySpace object
 	 * @throws IllegalArgumentException if keySpaceName not exit, will throw 
 	 *   out IllegalArgumentException.
+	 * @throws TException 
+	 * @throws NotFoundException 
 	 */
-	public KeySpace getKeySpace(String keySpaceName) throws IllegalArgumentException ;
+	public KeySpace getKeySpace(String keySpaceName) throws IllegalArgumentException, NotFoundException, TException ;
 	
 	
 	/**
@@ -101,8 +107,10 @@ public interface CassandraClient {
 	 * @param consitencyLevel
 	 * @return
 	 * @throws IllegalArgumentException
+	 * @throws TException 
+	 * @throws NotFoundException 
 	 */
-	public KeySpace getKeySpace(String keySpaceName , ConsistencyLevel consitencyLevel) throws IllegalArgumentException ;
+	public KeySpace getKeySpace(String keySpaceName , ConsistencyLevel consitencyLevel) throws IllegalArgumentException, NotFoundException, TException ;
 	
 	
 	
@@ -116,7 +124,52 @@ public interface CassandraClient {
 	 * 
 	 * @param propertyName
 	 * @return
+	 * @throws TException 
 	 */
-	public String getStringProperty(String propertyName) ;
+	public String getStringProperty(String propertyName) throws TException ;
+	
+	
+	/**
+	 * return default consistency level, all keyspace create from this client
+	 * will have this consistency level.
+	 * @return
+	 */
+	public ConsistencyLevel getDefaultConsistencyLevel();
+
+	
+	/**
+	 * set the default consistency level
+	 * @param defaultConsistencyLevel
+	 */
+	public void setDefaultConsistencyLevel(ConsistencyLevel defaultConsistencyLevel);
+	
+	
+	/**
+	 * return all keyspaces name of this client.
+	 * @return
+	 */
+	public List<String> getKeyspaces() ;
+
+	
+	/**
+	 * return target server cluster name
+	 * @return
+	 */
+	public String getClusterName() ;
+
+	
+	/**
+	 * return token name
+	 * @return
+	 */
+	public String getTokenMap() ;
+
+	
+	/**
+	 * return content file content
+	 * @return
+	 */
+	public String getConfigFile() ;
+
 	
 }

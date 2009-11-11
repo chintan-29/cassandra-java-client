@@ -16,16 +16,24 @@ import org.yosemite.jcsadra.CassandraClient;
 import org.yosemite.jcsadra.Column;
 import org.yosemite.jcsadra.KeySpace;
 import org.yosemite.jcsadra.SuperColumn;
+import org.yosemite.jcsadra.CassandraClient.ConsistencyLevel;
 
 public class KeySpaceImpl implements KeySpace {
 	
+	private ConsistencyLevel consistencyLevel;
+
 	/*
 	 * Constructor method, only inner class can create a 
 	 * key space instance.
 	 */
-	protected KeySpaceImpl(CassandraClient client){
+	protected KeySpaceImpl(CassandraClient client, String keyspaceName,
+			Map<String, Map<String, String>> keyspaceDesc,
+			CassandraClient.ConsistencyLevel clevel) {
 		this._client = client ;
 		this._cassadra = client.getCassandra();
+		this.keyspaceName = keyspaceName ;
+		this.keyspaceDesc = keyspaceDesc ;
+		this.consistencyLevel = clevel ;
 	}
 	
 	
@@ -137,5 +145,31 @@ public class KeySpaceImpl implements KeySpace {
 		
 	}
 	
+	
+	
+	
+	/**
+	 * get key space name
+	 * @return
+	 */
+	public String getKeyspaceName() {
+		return keyspaceName;
+	}
+
+	/**
+	 * getKeyspaceDesc
+	 * @return
+	 */
+	public Map<String, Map<String, String>> getKeyspaceDesc() {
+		return keyspaceDesc;
+	}
+	
+	
+	// ======================= private =======================
+	private String keyspaceName;
+	
+	private Map<String, Map<String, String>> keyspaceDesc;
+	
+
 
 }
