@@ -19,13 +19,13 @@ package org.yosemite.jcsadra;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.cassandra.service.Cassandra;
-import org.apache.cassandra.service.ColumnOrSuperColumn;
+import org.apache.cassandra.service.Column;
 import org.apache.cassandra.service.ColumnParent;
 import org.apache.cassandra.service.ColumnPath;
 import org.apache.cassandra.service.InvalidRequestException;
 import org.apache.cassandra.service.NotFoundException;
 import org.apache.cassandra.service.SlicePredicate;
+import org.apache.cassandra.service.SuperColumn;
 import org.apache.cassandra.service.UnavailableException;
 import org.apache.thrift.TException;
 
@@ -167,7 +167,7 @@ public interface KeySpace {
 	 * @throws UnavailableException
 	 * @throws TException
 	 */
-    public Map<String, List<BaseColumn>> multigetSlice(
+    public Map<String, List<Column>> multigetSlice(
 			List<String> keys, ColumnParent column_parent,
 			SlicePredicate predicate) throws InvalidRequestException,
 			UnavailableException, TException;
@@ -184,7 +184,7 @@ public interface KeySpace {
 	 * @throws UnavailableException
 	 * @throws TException
 	 */
-    public Map<String, List<BaseColumn>> multigetSuperSlice(
+    public Map<String, List<SuperColumn>> multigetSuperSlice(
 			List<String> keys, ColumnParent column_parent,
 			SlicePredicate predicate) throws InvalidRequestException,
 			UnavailableException, TException;
@@ -201,7 +201,7 @@ public interface KeySpace {
      * @throws UnavailableException
      * @throws TException
      */
-    public void insert(String keyspace, String key, ColumnPath column_path,
+    public void insert( String key, ColumnPath column_path,
 			byte[] value) throws InvalidRequestException,
 			UnavailableException, TException;
 
@@ -218,8 +218,8 @@ public interface KeySpace {
 	 * @throws UnavailableException
 	 * @throws TException
 	 */
-    public void batchInsert(String keyspace, String key,
-			Map<String, List<BaseColumn>> cfmap)
+    public void batchInsert(String key,
+			Map<String, List<Column>> cfmap , Map<String, List<SuperColumn>> superColumnMap )
 			throws InvalidRequestException, UnavailableException, TException;
 
 	/**

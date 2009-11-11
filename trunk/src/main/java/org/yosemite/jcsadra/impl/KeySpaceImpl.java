@@ -1,9 +1,13 @@
 package org.yosemite.jcsadra.impl;
 
 import java.util.List;
+
 import java.util.Map;
 
 import org.apache.cassandra.service.Cassandra;
+import org.apache.cassandra.service.ColumnOrSuperColumn;
+import org.apache.cassandra.service.SuperColumn;
+import org.apache.cassandra.service.Column;
 import org.apache.cassandra.service.ColumnParent;
 import org.apache.cassandra.service.ColumnPath;
 import org.apache.cassandra.service.InvalidRequestException;
@@ -11,11 +15,11 @@ import org.apache.cassandra.service.NotFoundException;
 import org.apache.cassandra.service.SlicePredicate;
 import org.apache.cassandra.service.UnavailableException;
 import org.apache.thrift.TException;
-import org.yosemite.jcsadra.BaseColumn;
+
 import org.yosemite.jcsadra.CassandraClient;
-import org.yosemite.jcsadra.Column;
 import org.yosemite.jcsadra.KeySpace;
-import org.yosemite.jcsadra.SuperColumn;
+
+
 import org.yosemite.jcsadra.CassandraClient.ConsistencyLevel;
 
 public class KeySpaceImpl implements KeySpace {
@@ -30,32 +34,23 @@ public class KeySpaceImpl implements KeySpace {
 			Map<String, Map<String, String>> keyspaceDesc,
 			CassandraClient.ConsistencyLevel clevel) {
 		this._client = client ;
-		this._cassadra = client.getCassandra();
+		this._cassandra = client.getCassandra();
 		this.keyspaceName = keyspaceName ;
 		this.keyspaceDesc = keyspaceDesc ;
 		this.consistencyLevel = clevel ;
 	}
 	
 	
-	
-	// Cassandra client object
-	private Cassandra.Client _cassadra ;
-	
-	// My Cassandra client
-	private CassandraClient _client ;
 
-	public void batchInsert(String keyspace, String key,
-			Map<String, List<BaseColumn>> cfmap)
+
+	public void batchInsert( String key,
+			Map<String, List<Column>> columnMap , Map<String, List<SuperColumn>> superColumnMap )
 			throws InvalidRequestException, UnavailableException, TException {
-		// TODO Auto-generated method stub
-		
+		//_cassandra.batch_insert(keyspaceName , key, cfmap , getRealConsistencyLevel(consistencyLevel));
 	}
+	
+	
 
-	public Map<String, Map<String, String>> describeKeyspace()
-			throws NotFoundException, TException {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	
 	public Column getColumn(String key, ColumnPath columnPath)
@@ -116,7 +111,7 @@ public class KeySpaceImpl implements KeySpace {
 		return null;
 	}
 
-	public Map<String, List<BaseColumn>> multigetSlice(List<String> keys,
+	public Map<String, List<Column>> multigetSlice(List<String> keys,
 			ColumnParent columnParent, SlicePredicate predicate)
 			throws InvalidRequestException, UnavailableException, TException {
 		// TODO Auto-generated method stub
@@ -132,17 +127,27 @@ public class KeySpaceImpl implements KeySpace {
 	}
 
 
-	public Map<String, List<BaseColumn>> multigetSuperSlice(List<String> keys,
+	public Map<String, List<SuperColumn>> multigetSuperSlice(List<String> keys,
 			ColumnParent columnParent, SlicePredicate predicate)
 			throws InvalidRequestException, UnavailableException, TException {
-		// TODO Auto-generated method stub
-		return null;
+		Map<String, List<ColumnOrSuperColumn>> res = _cassandra.multiget_slice(
+				keyspaceName, keys, columnParent, predicate,
+				getRealConsistencyLevel(consistencyLevel));
+		
+		//TODO update this
+		return null ; 
+		
 	}
 
+	
+	
+	/**
+	 * remove column 
+	 */
 	public void remove(String key, ColumnPath columnPath)
 			throws InvalidRequestException, UnavailableException, TException {
-		// TODO Auto-generated method stub
-		
+		_cassandra.remove(keyspaceName, key, columnPath, getTimeStamp(),
+				getRealConsistencyLevel(consistencyLevel));
 	}
 	
 	
@@ -156,6 +161,12 @@ public class KeySpaceImpl implements KeySpace {
 		return keyspaceName;
 	}
 
+	public Map<String, Map<String, String>> describeKeyspace()
+			throws NotFoundException, TException {
+		return getKeyspaceDesc();
+	}
+
+	
 	/**
 	 * getKeyspaceDesc
 	 * @return
@@ -166,10 +177,41 @@ public class KeySpaceImpl implements KeySpace {
 	
 	
 	// ======================= private =======================
+	private long getTimeStamp(){
+		return System.currentTimeMillis() ;
+	}
+	
+	
+	private int getRealConsistencyLevel(CassandraClient.ConsistencyLevel cclevel){
+		switch (cclevel){
+			case ONE:
+				return org.apache.cassandra.service.ConsistencyLevel.ONE;
+			case QUORUM:
+				return org.apache.cassandra.service.ConsistencyLevel.QUORUM;
+			case ALL:
+				return org.apache.cassandra.service.ConsistencyLevel.ALL;
+			case ZERO:
+				return org.apache.cassandra.service.ConsistencyLevel.ZERO;
+			default:
+				return org.apache.cassandra.service.ConsistencyLevel.QUORUM;
+		}
+	}
+	
 	private String keyspaceName;
 	
 	private Map<String, Map<String, String>> keyspaceDesc;
 	
+	
+	// Cassandra client object
+	private Cassandra.Client _cassandra ;
+	
+	// My Cassandra client
+	private CassandraClient _client ;
 
+	public void insert(String key, ColumnPath columnPath, byte[] value)
+			throws InvalidRequestException, UnavailableException, TException {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
