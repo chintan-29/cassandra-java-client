@@ -62,15 +62,15 @@ public class KeySpaceImpl implements KeySpace {
 
 	public int getCount(String key, ColumnParent columnParent)
 			throws InvalidRequestException, UnavailableException, TException {
-		// TODO Auto-generated method stub
-		return 0;
+		return _cassandra.get_count(keyspaceName, key, columnParent,
+				getRealConsistencyLevel(consistencyLevel));		
 	}
 
-	public List<String> getKeyRange(String keyspace, String columnFamily,
+	public List<String> getKeyRange( String columnFamily,
 			String start, String finish, int count)
 			throws InvalidRequestException, UnavailableException, TException {
-		// TODO Auto-generated method stub
-		return null;
+		return _cassandra.get_key_range(keyspaceName, columnFamily , start, finish, count, 
+				getRealConsistencyLevel(consistencyLevel));
 	}
 
 	public List<Column> getSlice(String key, ColumnParent columnParent,

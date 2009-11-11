@@ -280,7 +280,7 @@ public interface KeySpace {
 	 * @throws UnavailableException
 	 * @throws TException
 	 */
-    public List<String> getKeyRange(String keyspace, String column_family,
+    public List<String> getKeyRange(String column_family,
 			String start, String finish, int count)
 			throws InvalidRequestException, UnavailableException, TException;
 
