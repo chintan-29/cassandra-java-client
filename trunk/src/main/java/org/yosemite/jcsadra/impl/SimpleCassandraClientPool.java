@@ -8,6 +8,7 @@ import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPoolFactory;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
@@ -63,9 +64,12 @@ import org.yosemite.jcsadra.CassandraClientPool;
  *  
  *  
  *  state table:
- *  ======            ===========           =========           ============
- *  |init|  ->     -> |maxActive| ->     -> |maxIdle| ->     -> |minIdle(0)|
- *  ======            ===========           =========           ============
+ *  =========                    ===========                        =========                         ============
+ *  |init(0)|  ->  getClient  -> |maxActive| ->  ReleaseClient   -> |maxIdle| ->  Wait Idle time   -> |minIdle(0)|
+ *  =========                    ===========                        =========                         ============
+ *                                   ^                                   |                                 | 
+ *                                   |-------------------when new getClient request arrive-----------------|
+ *  
  * @author sanli
  */
 public class SimpleCassandraClientPool implements CassandraClientPool {
@@ -255,7 +259,7 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	}
 	
 	
-	protected CassandraClient createClient() throws TTransportException{
+	protected CassandraClient createClient() throws TTransportException , TException {
 		
 		if(logger.isDebugEnabled())
 			logger.debug("create cassandra client [" + serviceURL + ":" + port + "]" );
@@ -268,6 +272,9 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 			CassandraClient cclient = new CassandraClientImpl(client) ;
 			return cclient ;
 		}catch(TTransportException e){
+			logger.error("create client error:" , e) ;
+			throw e ;
+		} catch (TException e) {
 			logger.error("create client error:" , e) ;
 			throw e ;
 		}
