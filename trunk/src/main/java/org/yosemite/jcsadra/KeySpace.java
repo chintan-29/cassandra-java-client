@@ -60,6 +60,8 @@ public interface KeySpace {
 			throws InvalidRequestException, NotFoundException,
 			UnavailableException, TException;
 
+    
+    
 	/**
 	 * Get the SuperColumn at the given column_path. If no value is
 	 * present, NotFoundException is thrown. (This is the only method that can

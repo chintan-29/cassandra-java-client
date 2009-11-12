@@ -16,6 +16,8 @@ public class CassandraClientImpl implements CassandraClient {
 	public final static String PROP_CONFIG_FILE = "config file";
 	public final static String PROP_TOKEN_MAP = "token map";
 	public final static String PROP_KEYSPACE = "keyspaces";
+	public final static String PROP_VERSION = "version";
+	
 
 	/**
 	 * constuctor function, for provent other one create Client object by hand,
@@ -39,7 +41,8 @@ public class CassandraClientImpl implements CassandraClient {
 		tokenMap = _cassandra.get_string_property(PROP_TOKEN_MAP);
 		configFile = _cassandra.get_string_property(PROP_CONFIG_FILE);
 		keyspaces = _cassandra.get_string_list_property(PROP_KEYSPACE);
-		keyspaceMap = new HashMap<String, KeySpace>(keyspaces.size() * 2 ) ;		
+		keyspaceMap = new HashMap<String, KeySpace>(keyspaces.size() * 2 ) ;
+		serverVersion = _cassandra.get_string_property(PROP_VERSION) ;
 	}
 
 	/**
@@ -116,6 +119,10 @@ public class CassandraClientImpl implements CassandraClient {
 		return configFile;
 	}
 
+	public String getServerVersion() {
+		return serverVersion;
+	}
+
 	
 	
 	// ======================== private field & method  ========================
@@ -128,6 +135,8 @@ public class CassandraClientImpl implements CassandraClient {
 	private String tokenMap;
 
 	private String configFile;
+
+	private String serverVersion;
 
 
 	// thrift object
