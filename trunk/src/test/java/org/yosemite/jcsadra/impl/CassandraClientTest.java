@@ -1,6 +1,7 @@
 package org.yosemite.jcsadra.impl;
 
 import static org.junit.Assert.assertTrue;
+
 import static org.junit.Assert.fail;
 
 import java.util.Map;
@@ -21,58 +22,15 @@ import org.yosemite.jcsadra.KeySpace;
 
 /**
  * Test CassandraClientImpl, this test need start a really exist Cassandra server
- * in localhost:9106, if can not found the server, call test will be skiped.
+ * in localhost:9106, if can not found the server, skipNeedServerCase test will be skiped.
  * 
  * @author sanli
  *
  */
-public class CassandraClientTest {
+public class CassandraClientTest extends ServerBasedTestCase{
 	
 
-	public static boolean skipNeedServerCase = false ;
-	
-	/**
-	 * check whether the server was started, if server not start will
-	 * set the skipNeedServerCase=true, then all case will be skipped 
-	 */
-	@BeforeClass
-	public static void checkServerStatus(){
-		TTransport tr = new TSocket( "localhost" , 9160 );
-		TProtocol proto = new TBinaryProtocol(tr);
-		Cassandra.Client client = new Cassandra.Client(proto);
-		CassandraClientImpl cclient = new CassandraClientImpl(client) ;
-		
-		try {
-			tr.open();
-			cclient.init();	
-		} catch (TTransportException e) {
-			System.out.println("can not found test server, will skip server relate test");
-			e.printStackTrace();
-			skipNeedServerCase = true ;
-		} catch (TException e) {
-			System.out.println("can not found test server, will skip server relate test");
-			e.printStackTrace();
-			skipNeedServerCase = true ;
-		}
-	}
-	
-	
-	public CassandraClientImpl createClient() throws TException{
-		TTransport tr = new TSocket( "localhost" , 9160 );
-		TProtocol proto = new TBinaryProtocol(tr);
-		Cassandra.Client client = new Cassandra.Client(proto);
-		CassandraClientImpl cclient = new CassandraClientImpl(client) ;
-		tr.open();
-		cclient.init() ;
-		return cclient ;
-	}
-	
-	
-	public void closeClient(CassandraClient cclient){
-		cclient.getCassandra().getInputProtocol().getTransport().close();
-		cclient.getCassandra().getOutputProtocol().getTransport().close();
-	}
-	
+
 	@Test
 	public void testInit() throws TException{
 		if(skipNeedServerCase){
