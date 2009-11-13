@@ -14,6 +14,8 @@ public class ServerBasedTestCase {
 	
 	
 	public static boolean skipNeedServerCase = false ;
+	
+	
 	/**
 	 * check whether the server was started, if server not start will
 	 * set the skipNeedServerCase=true, then all case will be skipped

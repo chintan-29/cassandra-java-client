@@ -114,7 +114,7 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	
 	
 	public SimpleCassandraClientPool(String serviceURL , int port ){
-		this(serviceURL, port, null, DEFAULT_MAX_ACTIVE,
+		this(serviceURL, port, null , DEFAULT_MAX_ACTIVE,
 				DEFAULT_EXHAUSTED_ACTION, DEFAULT_MAX_WAITTIME_WHEN_EXHAUSTED , 
 				DEFAULT_MAX_IDLE );
 	}
@@ -251,7 +251,7 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 			this._clientfactory = new PoolableClientFactory();
 		}
 		
-		_poolfactory = new GenericObjectPoolFactory( clientfactory , maxActive ,
+		_poolfactory = new GenericObjectPoolFactory( _clientfactory , maxActive ,
 				_getObjectPoolExhaustedAction(exhaustedAction) ,
 				maxWait , maxIdle );
 		
