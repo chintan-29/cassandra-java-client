@@ -2,12 +2,14 @@ package org.yosemite.jcsadra.impl;
 
 import static org.junit.Assert.*;
 
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 
+import org.apache.cassandra.service.SuperColumn;
 import org.apache.cassandra.service.Cassandra;
 import org.apache.cassandra.service.Column;
 import org.apache.cassandra.service.ColumnParent;
@@ -28,6 +30,25 @@ import org.junit.Test;
 import org.yosemite.jcsadra.CassandraClientPool;
 import org.yosemite.jcsadra.KeySpace;
 
+
+/**
+ * Target test space as bellow:
+ * <Keyspaces>
+    <Keyspace Name="Keyspace1">
+      <ColumnFamily CompareWith="BytesType"
+                    Name="Standard1"
+                    FlushPeriodInMinutes="60"/>
+      <ColumnFamily CompareWith="UTF8Type" Name="Standard2"/>
+      <ColumnFamily CompareWith="TimeUUIDType" Name="StandardByUUID1"/>
+      <ColumnFamily ColumnType="Super"
+                    CompareWith="UTF8Type"
+                    CompareSubcolumnsWith="UTF8Type"
+                    Name="Super1"/>
+    </Keyspace>
+  </Keyspaces>
+ * @author sanli
+ *
+ */
 public class KeySpaceTest extends ServerBasedTestCase {
 	
 	public static CassandraClientPool pool ;
@@ -162,7 +183,7 @@ public class KeySpaceTest extends ServerBasedTestCase {
 	 */
 	@Test
 	public void testGetKeyRange() {
-		if(skipNeedServerCase && true){
+		if(skipNeedServerCase || true){
 			return ;
 		}
 		
@@ -195,6 +216,7 @@ public class KeySpaceTest extends ServerBasedTestCase {
 		List<Column> cols = ks.getSlice("testGetSlice", clp , sp ) ;
 		
 		
+		
 		ColumnPath cp = new ColumnPath("Standard2" , null, null);
 		ks.remove("testGetSlice_", cp);
 		
@@ -206,12 +228,37 @@ public class KeySpaceTest extends ServerBasedTestCase {
 	
 	
 	@Test
-	public void testGetSuperColumn() {
+	public void testGetSuperColumn() throws IllegalArgumentException,
+			NoSuchElementException, IllegalStateException, NotFoundException,
+			TException, Exception {
 		if(skipNeedServerCase){
 			return ;
 		}
+		KeySpace ks = pool.getClient().getKeySpace("Keyspace1");
+
+		HashMap<String, List<SuperColumn>> cfmap = new HashMap<String, List<SuperColumn>>(
+				10);
+		ArrayList<Column> list = new ArrayList<Column>(100);
+		for (int j = 0; j < 10; j++) {
+			Column col = new Column(("testGetSuperColumn_" + j)
+					.getBytes("utf-8"), ("testGetSuperColumn_value_" + j)
+					.getBytes("utf-8"), System.currentTimeMillis());
+			list.add(col);
+		}
+		ArrayList<SuperColumn> superlist = new ArrayList<SuperColumn>(1);
+		SuperColumn sc = new SuperColumn("SuperColumn_1".getBytes("utf-8") , list);
+		superlist.add(sc);
+		cfmap.put("Super1", superlist);
+		ks.batchInsert("testGetSuperColumn_1", null, cfmap);
 		
-		fail("Not yet implemented");
+		ColumnPath cp = new ColumnPath( "Super1" ,  "SuperColumn_1".getBytes("utf-8") , null );
+		SuperColumn superc = ks.getSuperColumn("testGetSuperColumn_1", cp );
+		
+		assertTrue(superc != null );
+		assertTrue(superc.getColumns() != null);
+		assertTrue(superc.getColumns().size() == 10 );
+		
+		ks.remove("testGetSuperColumn_1", cp);		
 	}
 
 	
