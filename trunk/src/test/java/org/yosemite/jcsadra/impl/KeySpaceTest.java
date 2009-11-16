@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
@@ -204,18 +206,29 @@ public class KeySpaceTest extends ServerBasedTestCase {
 		KeySpace ks = pool.getClient().getKeySpace("Keyspace1") ;
 		
 		// insert value		 
+		ArrayList<String> columnnames = new ArrayList<String>(100);
 		for(int i = 0 ; i < 100 ; i++){
 			ColumnPath cp = new ColumnPath("Standard2" , null, ("testGetSlice_"+i).getBytes("utf-8"));
 			ks.insert("testGetSlice" , cp , ("testGetSlice_Value_"+i).getBytes("utf-8"));
+			columnnames.add("testGetSlice_"+i);
 		}
 		
 		//get value
-		ColumnParent clp =  new ColumnParent("Standard1", null);
-		SliceRange sr = new SliceRange();
+		ColumnParent clp =  new ColumnParent("Standard2", null);
+		SliceRange sr = new SliceRange(new byte[0] , new byte[0], false , 150 );
 		SlicePredicate  sp = new SlicePredicate(null , sr );
 		List<Column> cols = ks.getSlice("testGetSlice", clp , sp ) ;
 		
+		assertTrue(cols!=null);
+		assertTrue(cols.size()==100) ;
 		
+		
+		Collections.sort(columnnames);
+		ArrayList<String> gotlist = new ArrayList<String>(100) ;
+		for(int i = 0 ; i< 100 ; i++){
+			gotlist.add(new String(cols.get(i).getName()) ) ;
+		}
+		assertTrue( gotlist.equals( columnnames ) ) ;
 		
 		ColumnPath cp = new ColumnPath("Standard2" , null, null);
 		ks.remove("testGetSlice_", cp);
@@ -252,20 +265,22 @@ public class KeySpaceTest extends ServerBasedTestCase {
 		ks.batchInsert("testGetSuperColumn_1", null, cfmap);
 		
 		ColumnPath cp = new ColumnPath( "Super1" ,  "SuperColumn_1".getBytes("utf-8") , null );
-		SuperColumn superc = ks.getSuperColumn("testGetSuperColumn_1", cp );
-		
-		assertTrue(superc != null );
-		assertTrue(superc.getColumns() != null);
-		assertTrue(superc.getColumns().size() == 10 );
-		
-		ks.remove("testGetSuperColumn_1", cp);		
+		try{
+			SuperColumn superc = ks.getSuperColumn("testGetSuperColumn_1", cp);
+
+			assertTrue(superc != null);
+			assertTrue(superc.getColumns() != null);
+			assertTrue(superc.getColumns().size() == 10);
+		}finally{
+			ks.remove("testGetSuperColumn_1", cp);
+		}
 	}
 
 	
 	
 	
 	
-	@Test
+/*	@Test
 	public void testGetSuperSlice() {
 		if(skipNeedServerCase){
 			return ;
@@ -274,19 +289,6 @@ public class KeySpaceTest extends ServerBasedTestCase {
 		fail("Not yet implemented");
 	}
 
-	
-	
-	
-	@Test
-	public void testInsertStringStringColumnPathByteArray() {
-		if(skipNeedServerCase){
-			return ;
-		}
-		
-		fail("Not yet implemented");
-	}
-
-	
 	
 	
 	@Test
@@ -333,7 +335,7 @@ public class KeySpaceTest extends ServerBasedTestCase {
 		
 		fail("Not yet implemented");
 	}
-
+*/
 
 
 }
