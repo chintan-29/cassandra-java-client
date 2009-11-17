@@ -1,8 +1,0 @@
-#summary Home Page.
-
-= Furthers List =
-  * Wrap Cassandra thrift java interface.
-  * Support connection pool, make write multi thread cassandra application more easy.
-  * Provide some high level object, make develop application base cassandra more easy.
-  * Provide some help utility.
-
