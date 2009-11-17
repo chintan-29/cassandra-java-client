@@ -66,6 +66,7 @@ public interface KeySpace {
 	 * Get the SuperColumn at the given column_path. If no value is
 	 * present, NotFoundException is thrown. (This is the only method that can
 	 * throw an exception under non-failure conditions.)
+	 * by default will return column with native order and return list is unlimit
 	 * 
 	 * @param key
 	 * @param column_path
@@ -78,6 +79,27 @@ public interface KeySpace {
 	public SuperColumn getSuperColumn(String key, ColumnPath column_path)
 			throws InvalidRequestException, NotFoundException,
 			UnavailableException, TException;
+	
+	
+	
+	/**
+	 * Get the SuperColumn at the given column_path. If no value is
+	 * present, NotFoundException is thrown. (This is the only method that can
+	 * throw an exception under non-failure conditions.)
+	 * 
+	 * @param key
+	 * @param columnPath
+	 * @param reversed    the result Column sort
+	 * @param size     the result column size
+	 * @return
+	 * @throws InvalidRequestException
+	 * @throws NotFoundException
+	 * @throws UnavailableException
+	 * @throws TException
+	 */
+	public SuperColumn getSuperColumn(String key, ColumnPath columnPath,
+			boolean reversed, int size) throws InvalidRequestException,
+			NotFoundException, UnavailableException, TException;
 
 	/**
 	 * Get the group of columns contained by column_parent (either a
@@ -156,6 +178,27 @@ public interface KeySpace {
     public Map<String, SuperColumn> multigetSuperColumn(List<String> keys,
 			ColumnPath column_path) throws InvalidRequestException,
 			UnavailableException, TException;
+    
+    
+    /**
+     * Perform a get for column_path in parallel on the given list<string> keys.
+	 * The return value maps keys to the ColumnOrSuperColumn found. If no value
+	 * corresponding to a key is present, the key will still be in the map, but
+	 * both the column and super_column references of the ColumnOrSuperColumn
+	 * object it maps to will be null.
+	 * 
+     * @param keys
+     * @param columnPath
+     * @param reversed
+     * @param size
+     * @return
+     * @throws InvalidRequestException
+     * @throws UnavailableException
+     * @throws TException
+     */
+    public Map<String, SuperColumn> multigetSuperColumn(List<String> keys,
+			ColumnPath columnPath , boolean reversed , int size) throws InvalidRequestException,
+			UnavailableException, TException ;
 
 	/**
 	 * Performs a get_slice for column_parent and predicate for the given keys

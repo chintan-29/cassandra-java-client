@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apache.cassandra.service.Cassandra;
 import org.apache.cassandra.service.ColumnOrSuperColumn;
+import org.apache.cassandra.service.SliceRange;
 import org.apache.cassandra.service.SuperColumn;
 import org.apache.cassandra.service.Column;
 import org.apache.cassandra.service.ColumnParent;
@@ -73,18 +74,39 @@ public class KeySpaceImpl implements KeySpace {
 		return cosc.getColumn();
 	}
 	
+	
+	
+	@Override
 	public SuperColumn getSuperColumn(String key, ColumnPath columnPath)
+			throws InvalidRequestException, NotFoundException,
+			UnavailableException, TException {
+		return getSuperColumn(key , columnPath , false , Integer.MAX_VALUE );
+	}
+	
+	
+	/**
+	 * get super column value, looks the cassandra.get() command  can not retrieve super column, we should 
+     * using get slice for get a supercolumn value
+	 */
+	public SuperColumn getSuperColumn(String key, ColumnPath columnPath , boolean reversed , int size )
 			throws InvalidRequestException, NotFoundException,
 			UnavailableException, TException {
 		if(!valideSuperColumnPath(columnPath))
 			throw new InvalidRequestException("give super column was not a valid column");
 		
-		ColumnOrSuperColumn cosc = _cassandra.get(keyspaceName, key, columnPath, getRealConsistencyLevel(consistencyLevel)) ;
-		return cosc.getSuper_column();
+		//only can get super column by get slice 
+		ColumnParent clp =  new ColumnParent(columnPath.getColumn_family() , columnPath.getSuper_column() );
+		SliceRange sr = new SliceRange(new byte[0] , new byte[0], reversed , size );
+		SlicePredicate  sp = new SlicePredicate(null , sr );
+		List<ColumnOrSuperColumn> cosc = _cassandra.get_slice(keyspaceName, key, clp,
+				sp, getRealConsistencyLevel(consistencyLevel));
+		
+		
+		return new SuperColumn(columnPath.getSuper_column() , getColumnList(cosc) );
 	}
-
 	
-
+	
+	
 	public int getCount(String key, ColumnParent columnParent)
 			throws InvalidRequestException, UnavailableException, TException {
 		return _cassandra.get_count(keyspaceName, key, columnParent,
@@ -205,26 +227,43 @@ public class KeySpaceImpl implements KeySpace {
 		}
 		return result;
 	}
+
+	
+	
+	public Map<String, SuperColumn> multigetSuperColumn(List<String> keys,
+			ColumnPath columnPath ) throws InvalidRequestException,
+			UnavailableException, TException {
+		return multigetSuperColumn(keys, columnPath , false , Integer.MAX_VALUE );
+	}
 	
 	
 	/**
-	 * multi get super column
+	 * multi get super column, result is a map of key and supercolumn, if the key can not found given super
+	 * column, it will not being include into result map.
 	 */
 	public Map<String, SuperColumn> multigetSuperColumn(List<String> keys,
-			ColumnPath columnPath) throws InvalidRequestException,
+			ColumnPath columnPath , boolean reversed , int size) throws InvalidRequestException,
 			UnavailableException, TException {
-		if(!valideColumnPath(columnPath)){
+		if(!valideSuperColumnPath(columnPath)){
 			throw new InvalidRequestException("specified column family not exist");
 		}
 		
-		Map<String, ColumnOrSuperColumn> cfmap = _cassandra.multiget(
-				keyspaceName, keys, columnPath,
-				getRealConsistencyLevel(consistencyLevel));
 		
-		Map<String, SuperColumn> result = new HashMap<String , SuperColumn>();
-		for(Map.Entry<String, ColumnOrSuperColumn> entry : cfmap.entrySet()){
-			result.put(entry.getKey(), entry.getValue().getSuper_column());
+		//only can get supercolumn by multigetSuperSlice 
+		ColumnParent clp =  new ColumnParent(columnPath.getColumn_family() , columnPath.getSuper_column() );
+		SliceRange sr = new SliceRange(new byte[0] , new byte[0], reversed , size );
+		SlicePredicate  sp = new SlicePredicate(null , sr );
+		Map<String, List<SuperColumn>>  sclist = multigetSuperSlice(keys, clp , sp );
+		
+		HashMap<String, SuperColumn> result = new HashMap<String, SuperColumn>(keys.size()*2);
+		for(Map.Entry<String , List<SuperColumn> > entry : sclist.entrySet()){
+			List<SuperColumn> sclistByKey = entry.getValue();
+			SuperColumn sc ;
+			if( sclistByKey.size() > 0 ){
+				result.put( entry.getKey() ,  sclistByKey.get(0));
+			}
 		}
+
 		return result;
 	}
 	
@@ -259,11 +298,25 @@ public class KeySpaceImpl implements KeySpace {
 				keyspaceName, keys, columnParent, predicate,
 				getRealConsistencyLevel(consistencyLevel));
 		
-		Map<String, List<SuperColumn>> result = new HashMap<String , List<SuperColumn>>();
-		for(Map.Entry<String, List<ColumnOrSuperColumn>> entry : cfmap.entrySet()){
-			result.put(entry.getKey(), getSuperColumnList(entry.getValue()));
+		// if user not given super column name, the multiget_slice will return List filled with
+		// super column, if user given a column name, the return List will filled with column,
+		// this is a bad interface design.
+		if(columnParent.getSuper_column()==null){
+			Map<String, List<SuperColumn>> result = new HashMap<String , List<SuperColumn>>();
+			for(Map.Entry<String, List<ColumnOrSuperColumn>> entry : cfmap.entrySet()){
+				result.put(entry.getKey(), getSuperColumnList(entry.getValue()));
+			}
+			return result; 
+		}else{
+			Map<String, List<SuperColumn>> result = new HashMap<String , List<SuperColumn>>();
+			for(Map.Entry<String, List<ColumnOrSuperColumn>> entry : cfmap.entrySet()){
+				SuperColumn spc = new SuperColumn( columnParent.getSuper_column() ,  getColumnList(entry.getValue()) );
+				ArrayList<SuperColumn> spclist = new ArrayList<SuperColumn>(1);
+				spclist.add(spc) ;
+				result.put(entry.getKey(), spclist );
+			}
+			return result;
 		}
-		return result; 
 		
 	}
 
@@ -456,7 +509,8 @@ public class KeySpaceImpl implements KeySpace {
 
 	// consistency level
 	private ConsistencyLevel consistencyLevel;
-	
+
+
 	
 
 
