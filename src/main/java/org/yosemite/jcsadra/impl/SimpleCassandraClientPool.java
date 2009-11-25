@@ -320,6 +320,18 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 		return true ;
 	}
 	
+	protected byte _getObjectPoolExhaustedAction(ExhaustedAction exhaustedAction){
+		switch(exhaustedAction){
+			case WHEN_EXHAUSTED_FAIL :
+				return GenericObjectPool.WHEN_EXHAUSTED_FAIL ;
+			case WHEN_EXHAUSTED_BLOCK :
+				return GenericObjectPool.WHEN_EXHAUSTED_BLOCK ;
+			case WHEN_EXHAUSTED_GROW :
+				return GenericObjectPool.WHEN_EXHAUSTED_GROW ;
+			default:
+				return GenericObjectPool.WHEN_EXHAUSTED_BLOCK ;
+		}
+	}
 	
 	
 	// **********************************  private method *********************************
@@ -340,17 +352,6 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	private int port = 9096 ;
 
 	
-	private byte _getObjectPoolExhaustedAction(ExhaustedAction exhaustedAction){
-		switch(exhaustedAction){
-			case WHEN_EXHAUSTED_FAIL :
-				return GenericObjectPool.WHEN_EXHAUSTED_FAIL ;
-			case WHEN_EXHAUSTED_BLOCK :
-				return GenericObjectPool.WHEN_EXHAUSTED_BLOCK ;
-			case WHEN_EXHAUSTED_GROW :
-				return GenericObjectPool.WHEN_EXHAUSTED_GROW ;
-			default:
-				return GenericObjectPool.WHEN_EXHAUSTED_BLOCK ;
-		}
-	}
+	
 
 }
