@@ -106,6 +106,13 @@ public class KeySpaceTest extends ServerBasedTestCase {
 			ks.remove("testInsertAndGetAndRemove_"+i, cp);
 		}
 		
+		
+		try{
+			ks.remove("testInsertAndGetAndRemove_not_exist", cp);
+		}catch(Exception e){
+			fail("remove not exist row should not throw exceptions");
+		}
+		
 		//get already removed value
 		for(int i = 0 ; i < 100 ; i++){
 			try{

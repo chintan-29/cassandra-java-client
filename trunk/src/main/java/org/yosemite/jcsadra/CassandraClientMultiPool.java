@@ -62,7 +62,7 @@ public interface CassandraClientMultiPool {
 	 * will throw out exception
 	 * @param client
 	 */
-	public void releaseClient(CassandraClient client) throws Exception ;
+	public void releaseClient(String key , CassandraClient client) throws Exception ;
 	
 	
 	/**
