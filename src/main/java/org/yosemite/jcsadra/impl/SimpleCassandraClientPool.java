@@ -176,12 +176,26 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 		@Override
 		public void destroyObject(Object obj) throws Exception {
 			CassandraClient client = (CassandraClient)obj ;
+			if(logger.isDebugEnabled())
+				logger.debug("close client " + client.toString());			
+			
 			closeClient(client) ;
 		}
 
 		@Override
 		public Object makeObject() throws Exception {
-			return createClient() ;
+			if(logger.isDebugEnabled())
+				logger.debug("create cassandra client [" + serviceURL + ":" + port + "]" );
+			
+			try{
+				return createClient(serviceURL , port ) ;
+			}catch(TTransportException e){
+				logger.error("create client error:" , e) ;
+				throw e ;
+			} catch (TException e) {
+				logger.error("create client error:" , e) ;
+				throw e ;
+			}
 		}
 		
 		/**
@@ -267,11 +281,11 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 		if(clientfactory==null){
 			this._clientfactory = new PoolableClientFactory();
 			_poolfactory = new GenericObjectPoolFactory( _clientfactory , maxActive ,
-					_getObjectPoolExhaustedAction(exhaustedAction) ,
+					getObjectPoolExhaustedAction(exhaustedAction) ,
 					maxWait , maxIdle );
 		}else{
 			_poolfactory = new GenericObjectPoolFactory( clientfactory , maxActive ,
-					_getObjectPoolExhaustedAction(exhaustedAction) ,
+					getObjectPoolExhaustedAction(exhaustedAction) ,
 					maxWait , maxIdle );
 		}
 		
@@ -281,11 +295,8 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 	}
 	
 	
-	protected CassandraClient createClient() throws TTransportException , TException {
-		
-		if(logger.isDebugEnabled())
-			logger.debug("create cassandra client [" + serviceURL + ":" + port + "]" );
-		try{
+	public static CassandraClient createClient(String  serviceURL , int port ) throws TTransportException , TException {
+
 			TTransport tr = new TSocket( serviceURL, port );
 			TProtocol proto = new TBinaryProtocol(tr);
 			Cassandra.Client client = new Cassandra.Client(proto);
@@ -294,33 +305,25 @@ public class SimpleCassandraClientPool implements CassandraClientPool {
 			CassandraClientImpl cclient = new CassandraClientImpl(client) ;
 			cclient.init() ;
 			return cclient ;
-		}catch(TTransportException e){
-			logger.error("create client error:" , e) ;
-			throw e ;
-		} catch (TException e) {
-			logger.error("create client error:" , e) ;
-			throw e ;
-		}
+		
 	}
 	
 	
-	protected void closeClient(CassandraClient cclient) {
+	public static void closeClient(CassandraClient cclient) {
 		Cassandra.Client client = cclient.getCassandra() ;
-		if(logger.isDebugEnabled())
-			logger.debug("close client " + client.toString());
 		
 		client.getInputProtocol().getTransport().close() ;
 		client.getOutputProtocol().getTransport().close() ;
 	}
 	
 	
-	protected boolean validateClient(CassandraClient client){
+	public static boolean validateClient(CassandraClient client){
 		//TODO send simple reqesut to cassandra, this request 
 		// should very quickly and light
 		return true ;
 	}
 	
-	protected byte _getObjectPoolExhaustedAction(ExhaustedAction exhaustedAction){
+	public static byte getObjectPoolExhaustedAction(ExhaustedAction exhaustedAction){
 		switch(exhaustedAction){
 			case WHEN_EXHAUSTED_FAIL :
 				return GenericObjectPool.WHEN_EXHAUSTED_FAIL ;
