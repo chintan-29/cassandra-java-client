@@ -91,8 +91,9 @@ public class EncryptUtils {
 	}
 
 	/**
-	 * generate security key base on some seed, and result key 
-	 * as base64 present string
+	 * generate security key base on some seed, and result key as base64 present
+	 * string
+	 * 
 	 * @param seed
 	 * @return
 	 * @throws Exception
@@ -114,5 +115,4 @@ public class EncryptUtils {
 		return Base64.encodeBase64String(secretKey.getEncoded());
 	}
 
-	
 }
