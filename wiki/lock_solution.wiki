@@ -14,7 +14,6 @@ I will try to resolve the lock problem first, then the multiple index problem.
 = What is optimistic lock =
 ...
 
-
 = Solution =
 _TODO_
 
