@@ -34,7 +34,7 @@ public interface Transcoder<T> {
 	 * @param d the data
 	 * @return the return value
 	 */
-	Object decode(Class clazz , byte[] d);
+	T decode(Class clazz , byte[] d);
 	
 	
 	/**
@@ -44,5 +44,5 @@ public interface Transcoder<T> {
 	 * @param compressed
 	 * @return
 	 */
-	Object decode( Class clazz , byte[] d , boolean compressed);
+	T decode( Class clazz , byte[] d , boolean compressed);
 }
