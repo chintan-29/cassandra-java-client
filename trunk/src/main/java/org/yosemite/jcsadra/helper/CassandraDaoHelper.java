@@ -1,12 +1,12 @@
 package org.yosemite.jcsadra.helper;
 
 import org.apache.cassandra.service.InvalidRequestException;
+import org.apache.cassandra.service.NotFoundException;
 import org.apache.cassandra.service.UnavailableException;
 import org.apache.thrift.TException;
 import org.yosemite.jcsadra.CassandraClient;
 import org.yosemite.jcsadra.CassandraClientPool;
 import org.yosemite.jcsadra.KeySpace;
-
 
 
 
@@ -61,7 +61,7 @@ public class CassandraDaoHelper {
 	
 	public interface KeySpaceAction{
 		void go(KeySpace ks) throws InvalidRequestException,
-				UnavailableException, TException;
+				UnavailableException, TException, TimedOutException, NotFoundException;
 	}
 	
 	
