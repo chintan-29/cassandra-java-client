@@ -46,6 +46,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.yosemite.jcsadra.CassandraClient;
 import org.yosemite.jcsadra.CassandraClientPool;
 import org.yosemite.jcsadra.KeySpace;
 
@@ -85,7 +86,8 @@ public class KeySpaceTest extends ServerBasedTestCase {
 			return ;
 		}
 		
-		KeySpace ks = pool.getClient().getKeySpace("Keyspace1") ;
+		CassandraClient cl = pool.getClient() ;
+		KeySpace ks = cl.getKeySpace("Keyspace1") ;
 		
 		// insert value
 		ColumnPath cp = new ColumnPath("Standard1" , null, "testInsertAndGetAndRemove".getBytes("utf-8")); 
@@ -124,6 +126,9 @@ public class KeySpaceTest extends ServerBasedTestCase {
 				fail("throw out other exception, should be NotFoundException." + e.toString() );
 			}
 		}
+		
+		pool.releaseClient(cl) ;
+		pool.close() ;
 		
 	}
 	
