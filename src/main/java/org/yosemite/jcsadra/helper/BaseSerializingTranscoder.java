@@ -10,8 +10,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.logging.Log;
 
 
 /**
@@ -19,9 +17,6 @@ import org.apache.commons.logging.Log;
  * compressed data.
  */
 public abstract class BaseSerializingTranscoder {
-
-	protected Log logger = LogFactory.getLog(this.getClass());
-	
 
 	private static final String DEFAULT_CHARSET = "UTF-8";
 
@@ -76,11 +71,9 @@ public abstract class BaseSerializingTranscoder {
 				bis.close();
 			}
 		} catch(IOException e) {
-			logger.warn("Caught IOException decoding %d bytes of data",
-					 e);
+			throw new RuntimeException("have IO Exception" ,e);
 		} catch (ClassNotFoundException e) {
-			logger.warn("Caught CNFE decoding %d bytes of data",
-					 e);
+			throw new RuntimeException("have Exception" ,e);
 		}
 		return rv;
 	}
@@ -104,9 +97,7 @@ public abstract class BaseSerializingTranscoder {
 			close(bos);
 		}
 		byte[] rv=bos.toByteArray();
-		
-		if (logger.isDebugEnabled())
-			logger.debug("Compressed "+ in.length + " bytes to " + rv.length);
+
 		return rv;	//
 	}
 
@@ -130,7 +121,6 @@ public abstract class BaseSerializingTranscoder {
 					bos.write(buf, 0, r);
 				}
 			} catch (IOException e) {
-				logger.warn("Failed to decompress data", e);
 				bos = null;
 			}
 		}
@@ -174,7 +164,7 @@ public abstract class BaseSerializingTranscoder {
             try {
                 closeable.close();
             } catch (Exception e) {
-                logger.info("Unable to close "+ closeable, e);
+                throw new RuntimeException("close data source have exception.",e);
             }
         }
     }

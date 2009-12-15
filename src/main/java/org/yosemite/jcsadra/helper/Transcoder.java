@@ -26,7 +26,7 @@ public interface Transcoder<T> {
 	 * @param o the object
 	 * @return the CachedData representing what should be sent
 	 */
-	public byte[] encode(T o , boolean comperess) ; 
+	public byte[] encode(Object o , boolean comperess) ; 
 
 	/**
 	 * Decode the cached object into the object it represents.
@@ -34,7 +34,7 @@ public interface Transcoder<T> {
 	 * @param d the data
 	 * @return the return value
 	 */
-	T decode(byte[] d);
+	Object decode(Class clazz , byte[] d);
 	
 	
 	/**
@@ -44,5 +44,5 @@ public interface Transcoder<T> {
 	 * @param compressed
 	 * @return
 	 */
-	T decode(byte[] d , boolean compressed);
+	Object decode( Class clazz , byte[] d , boolean compressed);
 }
