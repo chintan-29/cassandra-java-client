@@ -1,6 +1,8 @@
 package org.yosemite.jcsadra.helper;
 
 import java.util.Date;
+import java.util.List;
+
 
 
 /**
@@ -15,22 +17,22 @@ public class SerializingTranscoder extends BaseSerializingTranscoder
 	
 
 	@Override
-	public Object decode(byte[] d) {
-		return decode(d , false) ;
+	public Object decode( Class clazz , byte[] d) {
+		return decode( clazz ,  d , false) ;
 	}
 	
 
 	/* (non-Javadoc)
 	 */
-	public Object decode( byte[] data , boolean comperessed ) {
+	public Object decode( Class clazz , byte[] data , boolean comperessed ) {
 		Object rv=null;
 		if(comperessed) {
 			data=decompress(data);
 		}
 
-		Class clazz = Object.class ;
-		if(clazz.equals(String.class)) {
-			rv=decodeString(data);
+			
+		if( clazz.equals(String.class) ) {
+			rv= decodeString(data);
 		}else if(clazz.equals(Boolean.class)){
 			rv=Boolean.valueOf(tu.decodeBoolean(data));
 		}else if(clazz.equals(Integer.class)){
@@ -88,15 +90,7 @@ public class SerializingTranscoder extends BaseSerializingTranscoder
 		
 		assert b != null;
 		if(comperess) {
-			byte[] compressed=compress(b);
-			if(compressed.length < b.length) {
-				logger.info(String.format("Compressed %s from %d to %d",
-					o.getClass().getName(), b.length, compressed.length));
-				b=compressed;
-			} else {
-				logger.info(String.format("Compression increased the size of %s from %d to %d",
-					o.getClass().getName(), b.length, compressed.length));
-			}
+			b=compress(b);
 		}
 		return b;
 	}

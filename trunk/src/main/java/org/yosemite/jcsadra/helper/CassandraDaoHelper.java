@@ -61,7 +61,7 @@ public class CassandraDaoHelper {
 	
 	public interface KeySpaceAction{
 		void go(KeySpace ks) throws InvalidRequestException,
-				UnavailableException, TException, TimedOutException, NotFoundException;
+				UnavailableException, TException, NotFoundException;
 	}
 	
 	
