@@ -1,7 +1,8 @@
 package org.yosemite.jcsadra.helper;
 
 import java.util.Date;
-import java.util.List;
+
+import org.yosemite.jcsadra.utils.TranscoderUtils;
 
 
 
@@ -11,25 +12,22 @@ import java.util.List;
 public class SerializingTranscoder extends BaseSerializingTranscoder
 	implements Transcoder<Object> {
 
-	
-
 	private final TranscoderUtils tu=new TranscoderUtils(true);
 	
 
 	@Override
-	public Object decode( Class clazz , byte[] d) {
-		return decode( clazz ,  d , false) ;
+	public Object decode( Class<? extends Object> clazz , byte[] d) {
+		return decode( clazz , d , false) ;
 	}
 	
 
 	/* (non-Javadoc)
 	 */
-	public Object decode( Class clazz , byte[] data , boolean comperessed ) {
+	public Object decode( Class<? extends Object> clazz ,byte[] data , boolean comperessed ) {
 		Object rv=null;
 		if(comperessed) {
 			data=decompress(data);
-		}
-
+		}		
 			
 		if( clazz.equals(String.class) ) {
 			rv= decodeString(data);
