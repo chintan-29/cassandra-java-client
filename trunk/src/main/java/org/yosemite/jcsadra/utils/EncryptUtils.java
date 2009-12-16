@@ -1,5 +1,6 @@
 package org.yosemite.jcsadra.utils;
 
+import java.io.File;
 import java.security.Key;
 import java.security.SecureRandom;
 
@@ -8,6 +9,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -26,7 +28,8 @@ public class EncryptUtils {
 	 * </pre>
 	 * 
 	 */
-	public static final String DEFAULT_ALGORITHM = "DES";
+	public static final String DEFAULT_ALGORITHM = "AES";
+	public static final int DEFAULT_KEYSIZE = 128 ;
 
 	/**
 	 * create a SecretKey from byte array
@@ -36,13 +39,13 @@ public class EncryptUtils {
 	 * @throws Exception
 	 */
 	private static Key toKey(byte[] key) throws Exception {
-		DESKeySpec dks = new DESKeySpec(key);
+		/*DESKeySpec dks = new DESKeySpec(key);
 		SecretKeyFactory keyFactory = SecretKeyFactory
-				.getInstance(DEFAULT_ALGORITHM);
-		SecretKey secretKey = keyFactory.generateSecret(dks);
+				.getInstance(DEFAULT_ALGORITHM);*/
+		//SecretKey secretKey = keyFactory.generateSecret(dks);
 
 		// using other algorithm should uncomment bellow line
-		// SecretKey secretKey = new SecretKeySpec(key, algorithmName );
+		SecretKey secretKey = new SecretKeySpec(key, "AES" );
 
 		return secretKey;
 	}
@@ -107,12 +110,21 @@ public class EncryptUtils {
 			secureRandom = new SecureRandom();
 		}
 
-		KeyGenerator kg = KeyGenerator.getInstance(DEFAULT_ALGORITHM);
-		kg.init(secureRandom);
+		KeyGenerator kg = KeyGenerator.getInstance( DEFAULT_ALGORITHM );
+		kg.init( DEFAULT_KEYSIZE , secureRandom );
 
 		SecretKey secretKey = kg.generateKey();
 
 		return Base64.encodeBase64String(secretKey.getEncoded());
 	}
 
+	
+	public static void saveKey(File file , SecretKey key){
+		//TODO write key to file
+	}
+	
+	public static SecretKey loadKey(File file){
+		//TODO load key from file.
+		return null ;
+	}
 }
