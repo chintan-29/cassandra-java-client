@@ -1,11 +1,22 @@
 package org.yosemite.jcsadra.utils;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
@@ -38,7 +49,7 @@ public class EncryptUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	private static Key toKey(byte[] key) throws Exception {
+	private static SecretKey toKey(byte[] key) {
 		/*DESKeySpec dks = new DESKeySpec(key);
 		SecretKeyFactory keyFactory = SecretKeyFactory
 				.getInstance(DEFAULT_ALGORITHM);*/
@@ -46,7 +57,6 @@ public class EncryptUtils {
 
 		// using other algorithm should uncomment bellow line
 		SecretKey secretKey = new SecretKeySpec(key, "AES" );
-
 		return secretKey;
 	}
 
@@ -56,9 +66,16 @@ public class EncryptUtils {
 	 * @param data
 	 * @param key
 	 * @return
+	 * @throws NoSuchPaddingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws BadPaddingException 
+	 *key @throws IllegalBlockSizeException 
 	 * @throws Exception
 	 */
-	public static byte[] decrypt(byte[] data, String key) throws Exception {
+	public static byte[] decrypt(byte[] data, String key)
+			throws NoSuchAlgorithmException, NoSuchPaddingException,
+			InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		Key k = toKey(Base64.decodeBase64(key));
 
 		Cipher cipher = Cipher.getInstance(DEFAULT_ALGORITHM);
@@ -66,6 +83,8 @@ public class EncryptUtils {
 
 		return cipher.doFinal(data);
 	}
+
+	
 
 	/**
 	 * encrypt data
@@ -75,7 +94,9 @@ public class EncryptUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] encrypt(byte[] data, String key) throws Exception {
+	public static byte[] encrypt(byte[] data, String key)
+			throws NoSuchAlgorithmException, NoSuchPaddingException,
+			InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		Key k = toKey(Base64.decodeBase64(key));
 		Cipher cipher = Cipher.getInstance(DEFAULT_ALGORITHM);
 		cipher.init(Cipher.ENCRYPT_MODE, k);
@@ -102,10 +123,24 @@ public class EncryptUtils {
 	 * @throws Exception
 	 */
 	public static String initKey(String seed) throws Exception {
+		SecretKey secretKey = genRandomeKey(Base64.decodeBase64(seed)) ;
+		return Base64.encodeBase64String(secretKey.getEncoded());
+	}
+
+	
+	
+	
+	/**
+	 * Generate a key with random seed
+	 * @param seed
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 */
+	public static SecretKey genRandomeKey(byte[] seed) throws NoSuchAlgorithmException{
 		SecureRandom secureRandom = null;
 
 		if (seed != null) {
-			secureRandom = new SecureRandom(Base64.decodeBase64(seed));
+			secureRandom = new SecureRandom(seed);
 		} else {
 			secureRandom = new SecureRandom();
 		}
@@ -114,17 +149,70 @@ public class EncryptUtils {
 		kg.init( DEFAULT_KEYSIZE , secureRandom );
 
 		SecretKey secretKey = kg.generateKey();
-
-		return Base64.encodeBase64String(secretKey.getEncoded());
-	}
-
-	
-	public static void saveKey(File file , SecretKey key){
-		//TODO write key to file
+		return secretKey ;
 	}
 	
-	public static SecretKey loadKey(File file){
-		//TODO load key from file.
-		return null ;
+	
+	/**
+	 * the start token in key store file, all String between START_TOKEN
+	 * and END_TOKEN will be consider as key content.
+	 */
+	public static String START_TOKEN =  "==== START ====" ;
+	/**
+	 * the end token in key store file
+	 */
+	public static String END_TOKEN =  "==== END ====" ;
+	/**
+	 * save a security key to a raw file, all keys was transcode to BASE64.
+	 * 
+	 * @param file  the store file, if file not exist will try to create it
+	 * @param key the scurity key
+	 * @throws IOException 
+	 */
+	public static void saveKey(File file , SecretKey key) throws IOException{
+		FileWriter sof = new FileWriter(file);
+		
+		try{
+			String keys =Base64.encodeBase64String(key.getEncoded());			
+			sof.write("===========================================================\n");
+			sof.write("=     AES 128 KEY, GEN BY APP, PLEASE DON'T EDIT IT       =\n");
+			sof.write("===========================================================\n");
+			sof.write(START_TOKEN + "\n");
+			sof.write(keys);
+			sof.write(END_TOKEN + "\n");
+			sof.flush();
+		}finally{
+			sof.close() ;
+		}
+	}
+	
+	
+	/**
+	 * load a BASE64 based security key
+	 * @param file
+	 * @return
+	 * @throws IOException 
+	 */
+	public static SecretKey loadKey(File file) throws IOException{
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		
+		String line ;
+		boolean iskey = false ;
+		StringBuilder key  =  new StringBuilder() ;
+		while(( line = reader.readLine() ) != null ){
+
+			
+			if(line.contains(END_TOKEN))
+				iskey = false ;
+			
+			if(iskey)
+				key.append(line.trim());		
+			
+			if(line.contains(START_TOKEN))
+				iskey = true ;		
+		}
+		
+		byte[] keybuf = Base64.decodeBase64(key.toString()) ; 
+		return toKey( keybuf ) ;
 	}
 }
