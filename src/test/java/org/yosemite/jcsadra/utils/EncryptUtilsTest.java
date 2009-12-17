@@ -2,9 +2,14 @@ package org.yosemite.jcsadra.utils;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.io.ByteArrayOutputStream;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+
+import javax.crypto.SecretKey;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -59,6 +64,28 @@ public class EncryptUtilsTest {
 		byte[] result2 = EncryptUtils.decrypt(result, key);
 		
 		assertTrue(Arrays.equals(data, result2));
+	}
+	
+	
+	@Test
+	public void testKeyStoreAndRetrive() throws NoSuchAlgorithmException,
+			IOException {
+		SecretKey key = EncryptUtils.genRandomeKey(String.valueOf(System.currentTimeMillis())
+				.getBytes("utf-8"));
+		assertTrue(key!=null) ;
+		
+		File keyfile = new File("testKeyStoreAndRetrive.key") ;
+		if(keyfile.exists()){
+			keyfile.delete() ;
+		}
+		EncryptUtils.saveKey( keyfile , key);
+		
+		assertTrue(keyfile.exists());
+		assertTrue(keyfile.length() > 100 );
+		
+		SecretKey loadkey = EncryptUtils.loadKey(keyfile) ;
+		assertTrue(loadkey!=null);
+		assertTrue(key.equals(loadkey));
 	}
 
 }

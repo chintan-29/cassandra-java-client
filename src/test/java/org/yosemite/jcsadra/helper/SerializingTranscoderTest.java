@@ -30,5 +30,38 @@ public class SerializingTranscoderTest {
 		assertTrue(s.equals(s2));
 		
 	}
+	
+	@Test
+	public void testDecodeAndEncode() {
+		SerializingTranscoder trans = new SerializingTranscoder();
+		
+		String t = "this is my test" ;
+		byte[] b = trans.encode(t) ;
+		String r = (String) trans.decode(String.class , b);
+		
+		assertTrue(t.equals(r));
+	}
+	
+	
+
+	@Test
+	public void testDecodeAndEncodeEmpty() {
+		SerializingTranscoder trans = new SerializingTranscoder();
+		
+		String t = "" ;
+		byte[] b = trans.encode(t) ;
+		assertTrue(b.length == 0 );
+		String r = (String) trans.decode( String.class , b );
+		assertTrue(t.equals(r));
+		
+		try{
+			String nt = null ;
+			trans.encode(nt);
+			fail("should throw out exception");
+		}catch(Exception e){
+			
+		}
+	}
+
 
 }
