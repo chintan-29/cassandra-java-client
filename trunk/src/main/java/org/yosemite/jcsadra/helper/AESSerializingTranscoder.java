@@ -38,7 +38,7 @@ public class AESSerializingTranscoder extends SerializingTranscoder implements
 		dencryptCipher.init(Cipher.DECRYPT_MODE, sceKey);
 		
 		encryptCipher = Cipher.getInstance(EncryptUtils.DEFAULT_ALGORITHM);
-		encryptCipher.init(Cipher.DECRYPT_MODE, sceKey);
+		encryptCipher.init(Cipher.ENCRYPT_MODE, sceKey);
 
 	}
 	

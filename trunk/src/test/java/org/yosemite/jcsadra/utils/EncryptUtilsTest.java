@@ -38,12 +38,35 @@ public class EncryptUtilsTest {
 	@Test
 	public void testBasicEncryptAndDencrypt() throws UnsupportedEncodingException, Exception{
 		
-		String msg = "this is test message" ;
+		String msg = "this is test message kjadfls asdfalsk akdhlkasd asdkjhakl kldhl " ;
 		
 		byte[] result = EncryptUtils.encrypt(msg.getBytes("utf-8"), key);
 		byte[] result2 = EncryptUtils.decrypt(result, key);
 		
 		assertTrue(msg.equals(new String(result2,"utf-8")));
+		
+		
+		
+		msg = "a" ;
+		result = EncryptUtils.encrypt(msg.getBytes("utf-8"), key);
+		result2 = EncryptUtils.decrypt(result, key);
+		assertTrue(msg.equals(new String(result2,"utf-8")));
+		
+		
+		msg = "" ;
+		result = EncryptUtils.encrypt(msg.getBytes("utf-8"), key);
+		result2 = EncryptUtils.decrypt(result, key);
+		assertTrue(msg.equals(new String(result2,"utf-8")));
+		
+		
+		try{
+			msg = null ;
+			EncryptUtils.encrypt(msg.getBytes("utf-8"), key);
+			fail();
+		}catch(Exception e){
+			
+		}
+		
 	}
 	
 	/**
