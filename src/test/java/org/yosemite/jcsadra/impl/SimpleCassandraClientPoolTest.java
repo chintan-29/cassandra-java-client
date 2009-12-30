@@ -17,6 +17,7 @@
 package org.yosemite.jcsadra.impl;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import static org.junit.Assert.fail;
 
@@ -77,6 +78,7 @@ public class SimpleCassandraClientPoolTest {
 		count = new AtomicInteger(0) ;
 	}
 	
+	@After
 	public void closePool(){
 		pool.close() ;
 	}
@@ -124,6 +126,64 @@ public class SimpleCassandraClientPoolTest {
 		assertTrue( pool.getActiveNum()  == 0 ) ;
 	}
 	
+	@Test
+    public void testSetMaxActiveWithNewValue() {
+        pool.setMaxActive(10);
+        assertEquals(10, pool.getMaxActive());
+
+        for (int i = 0; i < 10; i++) {
+            try {
+                pool.getClient();
+            } catch (Exception e) {
+                fail("Exception caught when creating client");
+            }
+        }
+
+        try {
+            pool.getClient();
+            fail("Exception should be thrown when pool exceeds its max active number");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    @Test
+    public void testMaxIdle() {
+    	assertEquals(0, pool.getAvailableNum());
+        for (int i = 0; i < pool.getMaxActive(); i++) {
+            try {
+                CassandraClient client = pool.getClient();
+                pool.releaseClient(client);
+            } catch (Exception e) {
+                fail("Exception caught when creating client");
+            }
+        }
+        assertEquals(1, pool.getAvailableNum());
+
+        ArrayList<CassandraClient> clients = new ArrayList<CassandraClient>();
+        for (int i = 0; i < pool.getMaxActive(); i++) {
+            try {
+                clients.add(pool.getClient());
+            } catch (Exception e) {
+                fail("Exception caught when creating client");
+            }
+        }
+
+        for (int i = 0; i < pool.getMaxActive(); i++) {
+            try {
+                pool.releaseClient(clients.get(i));
+                if (i < pool.getMaxIdle())
+                    assertEquals(i + 1, pool.getAvailableNum());
+                else
+                    assertEquals(pool.getMaxIdle(), pool.getAvailableNum());
+            } catch (Exception e) {
+                fail("Exception caught when release client.");
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 	
 	AtomicInteger count ;
 
