@@ -234,6 +234,7 @@ public class SimpleCassandraClientMultiPool implements CassandraClientMultiPool 
 		this.exhaustedAction = exhaustedAction ;
 		this.maxWaitWhenBlockByExhausted = maxWait ; 
 		this.maxIdle = maxIdle;
+		this.clusters = clusters ;
 		
 		// if not give  a client factory, will create the default PoolableClientFactory
 		if(clientfactory==null){
