@@ -15,7 +15,6 @@ public class SerializingTranscoder extends BaseSerializingTranscoder
 	private final TranscoderUtils tu=new TranscoderUtils(true);
 	
 
-	@Override
 	public Object decode( Class<? extends Object> clazz , byte[] d) {
 		return decode( clazz , d , false) ;
 	}
@@ -93,6 +92,18 @@ public class SerializingTranscoder extends BaseSerializingTranscoder
 		return b;
 	}
 
-	
-	
+
+	@Override
+	public Object decode(byte[] d) {
+		return decode(d, false);
+	}
+
+
+	@Override
+	public Object decode(byte[] d, boolean compressed) {
+		if(compressed) {
+			d=decompress(d);
+		}	
+		return deserialize(d);		
+	}
 }
