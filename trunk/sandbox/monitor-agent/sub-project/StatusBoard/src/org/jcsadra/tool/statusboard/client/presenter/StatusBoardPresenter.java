@@ -1,4 +1,4 @@
-package com.webex.jcasandra.board.client.presenter;
+package org.jcsadra.tool.statusboard.client.presenter;
 
 import java.util.List;
 import java.util.Map;
@@ -9,11 +9,11 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.Widget;
-import com.webex.jcasandra.board.client.servcie.MBeanInfoService;
-import com.webex.jcasandra.board.client.servcie.MBeanInfoServiceAsync;
-import com.webex.jcasandra.board.client.view.StatusBoardViewImpl;
-import com.webex.jcasandra.board.client.view.StatusDetailView;
-import com.webex.jcasandra.board.client.view.StatusListView;
+import org.jcsadra.tool.statusboard.client.service.MBeanInfoService;
+import org.jcsadra.tool.statusboard.client.service.MBeanInfoServiceAsync;
+import org.jcsadra.tool.statusboard.client.view.StatusBoardViewImpl;
+import org.jcsadra.tool.statusboard.client.view.StatusDetailView;
+import org.jcsadra.tool.statusboard.client.view.StatusListView;
 
 
 /**

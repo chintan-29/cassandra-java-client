@@ -1,4 +1,4 @@
-package com.webex.jcasandra.board.client.presenter;
+package org.jcsadra.tool.statusboard.client.presenter;
 
 import com.google.gwt.user.client.ui.HasWidgets;
 

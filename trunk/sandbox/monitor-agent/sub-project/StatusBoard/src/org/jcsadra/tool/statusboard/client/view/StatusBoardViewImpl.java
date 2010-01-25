@@ -1,4 +1,4 @@
-package com.webex.jcasandra.board.client.view;
+package org.jcsadra.tool.statusboard.client.view;
 
 import java.util.List;
 import java.util.Map;
@@ -11,8 +11,8 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.webex.jcasandra.board.client.StatusBoard;
-import com.webex.jcasandra.board.client.presenter.StatusBoardPresenter.StatusBoardView;
+import org.jcsadra.tool.statusboard.client.StatusBoard;
+import org.jcsadra.tool.statusboard.client.presenter.StatusBoardPresenter.StatusBoardView;
 
 public class StatusBoardViewImpl implements StatusBoardView {
 	

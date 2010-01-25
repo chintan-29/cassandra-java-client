@@ -1,4 +1,4 @@
-package com.webex.jcasandra.board.client.servcie;
+package org.jcsadra.tool.statusboard.client.service;
 
 import java.util.Set;
 

@@ -1,4 +1,4 @@
-package com.webex.jcasandra.board.server;
+package org.jcsadra.tool.statusboard.server;
 
 import java.beans.BeanDescriptor;
 import java.lang.management.MemoryMXBean;
