@@ -1,4 +1,4 @@
-package com.webex.jcasandra.board.client.view;
+package org.jcsadra.tool.statusboard.client.view;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.resources.client.ClientBundle;

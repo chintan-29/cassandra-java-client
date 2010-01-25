@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.webex.jcasandra.board.client.view;
+package org.jcsadra.tool.statusboard.client.view;
 
 import java.util.ArrayList;
 import java.util.Arrays;

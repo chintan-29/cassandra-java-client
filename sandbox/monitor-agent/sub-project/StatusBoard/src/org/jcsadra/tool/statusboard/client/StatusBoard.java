@@ -1,4 +1,4 @@
-package com.webex.jcasandra.board.client;
+package org.jcsadra.tool.statusboard.client;
 
 import com.google.gwt.core.client.EntryPoint;
 

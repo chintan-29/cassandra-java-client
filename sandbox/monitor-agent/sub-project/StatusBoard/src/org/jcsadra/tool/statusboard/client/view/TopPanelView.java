@@ -13,34 +13,29 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.webex.jcasandra.board.client.view;
+package org.jcsadra.tool.statusboard.client.view;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.Element;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.ResizeComposite;
+import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Anchor;
+import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
- * A composite for displaying the details of an email message.
+ * The top panel, which contains the 'welcome' message and various links.
  */
-public class StatusDetailView extends ResizeComposite {
+public class TopPanelView extends Composite {
 
-  interface Binder extends UiBinder<Widget, StatusDetailView> { }
+  interface Binder extends UiBinder<Widget, TopPanelView> { }
   private static final Binder binder = GWT.create(Binder.class);
 
-  @UiField Element key;
-  @UiField Element value;
-
-
-  public StatusDetailView() {
-    initWidget(binder.createAndBindUi(this));
+  public TopPanelView() {
+		initWidget(binder.createAndBindUi(this));
   }
-
-  public void setItem(String keyname , String valuestr) {
-    key.setInnerText(keyname);
-    value.setInnerText(valuestr) ;
-  }
+  
 }
